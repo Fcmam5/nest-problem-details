@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "nest-http-problem-details": {
+      "type": "library",
+      "root": "libs/nest-http-problem-details",
+      "entryFile": "index",
+      "sourceRoot": "libs/nest-http-problem-details/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/nest-http-problem-details/tsconfig.lib.json"
+      }
+    }
+  },
+  "compilerOptions": {
+    "webpack": true
+  }
+}
