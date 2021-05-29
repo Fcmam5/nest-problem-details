@@ -7,6 +7,7 @@ import {
   HttpExceptionFilter,
   PROBLEM_CONTENT_TYPE,
 } from './http-exception.filter';
+import { IProblemDetail } from './http-exception.interface';
 
 const mockJson = jest.fn();
 
@@ -49,21 +50,36 @@ describe('HttpExceptionFilter', () => {
 
   describe('default HttpExceptions', () => {
     it('should map default exception when thrown with not parameters', () => {
+      const expectation: IProblemDetail = {
+        title: 'Bad Request',
+        status: HttpStatus.BAD_REQUEST,
+        type: '',
+        instance: '',
+      };
+
       filter.catch(new BadRequestException(), mockArgumentsHost);
 
       expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
       expect(mockStatus).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-      expect(mockJson).toHaveBeenCalled();
+      expect(mockJson).toHaveBeenCalledWith(expectation);
     });
 
     it('should map default exception when thrown with error details', () => {
       const details = 'you shall not pass!';
 
+      const expectation: IProblemDetail = {
+        title: 'Forbidden',
+        detail: details,
+        status: HttpStatus.FORBIDDEN,
+        type: '',
+        instance: '',
+      };
+
       filter.catch(new ForbiddenException(details), mockArgumentsHost);
 
       expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
       expect(mockStatus).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
-      expect(mockJson).toHaveBeenCalled();
+      expect(mockJson).toHaveBeenCalledWith(expectation);
     });
   });
 });
