@@ -12,9 +12,12 @@
   "devDependencies": {
     "@nestjs/common": "^7.6.17",
     "@nestjs/core": "^7.6.17",
+    "@nestjs/testing": "^7.6.17",
     "@types/express": "^4.17.12",
     "@types/jest": "^26.0.23",
     "@types/node": "^15.6.1",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
     "eslint": "^7.22.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",

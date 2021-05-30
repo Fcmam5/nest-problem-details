@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
   HttpStatus,
 } from '@nestjs/common';
 import {
@@ -48,38 +49,105 @@ describe('HttpExceptionFilter', () => {
     jest.clearAllMocks();
   });
 
-  describe('default HttpExceptions', () => {
-    it('should map default exception when thrown with not parameters', () => {
-      const expectation: IProblemDetail = {
-        title: 'Bad Request',
-        status: HttpStatus.BAD_REQUEST,
-        type: '',
-        instance: '',
-      };
+  describe('when called with default parameters', () => {
+    describe('default Http exceptions', () => {
+      it('should map default exception when thrown with not parameters', () => {
+        const status = HttpStatus.BAD_REQUEST;
+        const expectation: IProblemDetail = {
+          title: 'Bad Request',
+          status,
+          type: '/bad-request',
+          instance: '',
+        };
 
-      filter.catch(new BadRequestException(), mockArgumentsHost);
+        filter.catch(new BadRequestException(), mockArgumentsHost);
 
-      expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
-      expect(mockStatus).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-      expect(mockJson).toHaveBeenCalledWith(expectation);
+        assertResponse(status, expectation);
+      });
+
+      it('should map default exception when thrown with error details', () => {
+        const status = HttpStatus.FORBIDDEN;
+        const details = 'you shall not pass!';
+
+        const expectation: IProblemDetail = {
+          title: 'Forbidden',
+          detail: details,
+          status,
+          type: '/forbidden',
+          instance: '',
+        };
+
+        filter.catch(new ForbiddenException(details), mockArgumentsHost);
+
+        assertResponse(status, expectation);
+      });
+
+      it('should map default exception when thrown with error details and description', () => {
+        const status = HttpStatus.FORBIDDEN;
+        const description = 'Gandalf said';
+        const details = 'you shall not pass!';
+
+        const expectation: IProblemDetail = {
+          title: description,
+          detail: details,
+          status,
+          type: '/forbidden',
+          instance: '',
+        };
+
+        filter.catch(
+          new ForbiddenException(details, description),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
     });
 
-    it('should map default exception when thrown with error details', () => {
-      const details = 'you shall not pass!';
+    describe('the generic HttpException', () => {
+      it('should map HttpException response when called with a string', () => {
+        const status = HttpStatus.I_AM_A_TEAPOT;
+        const details = 'you shall not pass!';
 
-      const expectation: IProblemDetail = {
-        title: 'Forbidden',
-        detail: details,
-        status: HttpStatus.FORBIDDEN,
-        type: '',
-        instance: '',
-      };
+        const expectation: IProblemDetail = {
+          title: details,
+          status,
+          type: '/i-am-a-teapot',
+          instance: '',
+        };
 
-      filter.catch(new ForbiddenException(details), mockArgumentsHost);
+        filter.catch(new HttpException(details, status), mockArgumentsHost);
 
-      expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
-      expect(mockStatus).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
-      expect(mockJson).toHaveBeenCalledWith(expectation);
+        assertResponse(status, expectation);
+      });
+
+      it('should map HttpException response when called with an object', () => {
+        const status = HttpStatus.I_AM_A_TEAPOT;
+        const errorObject = {
+          error: 'I am a teapot',
+          status,
+        };
+
+        const expectation: IProblemDetail = {
+          title: errorObject.error,
+          status,
+          type: '/i-am-a-teapot',
+          instance: '',
+        };
+
+        filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
+
+        assertResponse(status, expectation);
+      });
     });
   });
+
+  function assertResponse(
+    expectedStatus: number,
+    expectedJson: IProblemDetail,
+  ) {
+    expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
+    expect(mockStatus).toHaveBeenCalledWith(expectedStatus);
+    expect(mockJson).toHaveBeenCalledWith(expectedJson);
+  }
 });
