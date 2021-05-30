@@ -6,16 +6,20 @@ import {
   Inject,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { defaultHttpErrors as _defaultHttpErrors } from './constants';
+import {
+  BASE_PROBLEMS_URI,
+  defaultHttpErrors as _defaultHttpErrors,
+  HTTP_ERRORS_MAP,
+} from './constants';
 
 export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(
-    @Inject('BASE_PROBLEMS_URI')
+    @Inject(BASE_PROBLEMS_URI)
     private baseUri = '',
-    @Inject('HTTP_ERRORS_MAP ')
+    @Inject(HTTP_ERRORS_MAP)
     private defaultHttpErrors?,
   ) {
     this.defaultHttpErrors = _defaultHttpErrors;

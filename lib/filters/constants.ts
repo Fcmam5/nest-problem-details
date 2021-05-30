@@ -33,3 +33,8 @@ export const defaultHttpErrors: IDefaultHTTPErrors = {
   504: 'gateway-timeout',
   505: 'http-version-not-supported',
 };
+
+// Provider keys
+export const BASE_PROBLEMS_URI = 'BASE_PROBLEMS_URI';
+export const HTTP_ERRORS_MAP = 'HTTP_ERRORS_MAP';
+export const HTTP_EXCEPTION_FILTER = 'HTTP_EXCEPTION_FILTER';

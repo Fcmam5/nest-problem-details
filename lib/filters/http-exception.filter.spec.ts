@@ -1,3 +1,4 @@
+import { Test } from '@nestjs/testing';
 import {
   BadRequestException,
   ForbiddenException,
@@ -9,6 +10,9 @@ import {
   PROBLEM_CONTENT_TYPE,
 } from './http-exception.filter';
 import { IProblemDetail } from './http-exception.interface';
+import { HttpProblemDetailsModule } from '../http-problem-details.module';
+import { HTTP_EXCEPTION_FILTER } from './http-exception.providers';
+import { HTTP_EXCEPTION_FILTER as HTTP_EXCEPTION_FILTER_KEY } from './constants';
 
 const mockJson = jest.fn();
 
@@ -41,15 +45,18 @@ const mockArgumentsHost = {
 describe('HttpExceptionFilter', () => {
   let filter: HttpExceptionFilter;
 
-  beforeEach(() => {
-    filter = new HttpExceptionFilter();
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('when called with default parameters', () => {
+  describe('when used as a module with default parameters', () => {
+    beforeAll(async () => {
+      const modRef = await Test.createTestingModule({
+        imports: [HttpProblemDetailsModule],
+      }).compile();
+      filter = modRef.get<HttpExceptionFilter>(HTTP_EXCEPTION_FILTER_KEY);
+    });
+
     describe('default Http exceptions', () => {
       it('should map default exception when thrown with not parameters', () => {
         const status = HttpStatus.BAD_REQUEST;
@@ -142,6 +149,25 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  describe('when used outside a module', () => {
+    beforeAll(() => {
+      filter = new HttpExceptionFilter();
+    });
+
+    it('should map default exception when thrown with not parameters', () => {
+      const status = HttpStatus.BAD_REQUEST;
+      const expectation: IProblemDetail = {
+        title: 'Bad Request',
+        status,
+        type: '/bad-request',
+        instance: '',
+      };
+
+      filter.catch(new BadRequestException(), mockArgumentsHost);
+
+      assertResponse(status, expectation);
+    });
+  });
   function assertResponse(
     expectedStatus: number,
     expectedJson: IProblemDetail,
