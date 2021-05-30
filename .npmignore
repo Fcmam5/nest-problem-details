@@ -1,0 +1,7 @@
+examples/*
+coverage/*
+.github/*
+.dist/*
+.eslintrc*
+.prettierrc*
+jest.config
