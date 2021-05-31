@@ -1,9 +1,9 @@
 import { Provider } from '@nestjs/common';
 import {
   defaultHttpErrors,
-  HTTP_ERRORS_MAP as HTTP_ERRORS_MAP_KEY,
-  BASE_PROBLEMS_URI as BASE_PROBLEMS_URI_KEY,
-  HTTP_EXCEPTION_FILTER as HTTP_EXCEPTION_FILTER_KEY,
+  HTTP_ERRORS_MAP_KEY,
+  BASE_PROBLEMS_URI_KEY,
+  HTTP_EXCEPTION_FILTER_KEY,
 } from './constants';
 import { HttpExceptionFilter } from './http-exception.filter';
 

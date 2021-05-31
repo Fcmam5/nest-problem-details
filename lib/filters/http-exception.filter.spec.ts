@@ -11,8 +11,11 @@ import {
 } from './http-exception.filter';
 import { IProblemDetail } from './http-exception.interface';
 import { HttpProblemDetailsModule } from '../http-problem-details.module';
-import { HTTP_EXCEPTION_FILTER } from './http-exception.providers';
-import { HTTP_EXCEPTION_FILTER as HTTP_EXCEPTION_FILTER_KEY } from './constants';
+import {
+  HTTP_EXCEPTION_FILTER_KEY,
+  HTTP_ERRORS_MAP_KEY,
+  BASE_PROBLEMS_URI_KEY,
+} from './constants';
 
 const mockJson = jest.fn();
 
@@ -149,6 +152,54 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  describe('when overriding parameters', () => {
+    const status = HttpStatus.I_AM_A_TEAPOT;
+    const customErrorsMap = {
+      [status]: 'some-problem-detail',
+    };
+
+    beforeAll(async () => {
+      const modRef = await Test.createTestingModule({
+        imports: [],
+        providers: [
+          {
+            provide: HTTP_ERRORS_MAP_KEY,
+            useValue: customErrorsMap,
+          },
+          {
+            provide: BASE_PROBLEMS_URI_KEY,
+            useValue: 'http://fcmam5.me/problems',
+          },
+          {
+            provide: HTTP_EXCEPTION_FILTER_KEY,
+            useClass: HttpExceptionFilter,
+          },
+        ],
+      }).compile();
+
+      filter = modRef.get<HttpExceptionFilter>(HTTP_EXCEPTION_FILTER_KEY);
+      console.log(modRef.get<string>(BASE_PROBLEMS_URI_KEY));
+    });
+
+    it('should map HttpException response when called with an object', () => {
+      const errorObject = {
+        error: 'I am a teapot',
+        status,
+      };
+
+      const expectation: IProblemDetail = {
+        title: errorObject.error,
+        status,
+        type: 'http://fcmam5.me/problems/some-problem-detail',
+        instance: '',
+      };
+
+      filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
+
+      assertResponse(status, expectation);
+    });
+  });
+
   describe('when used outside a module', () => {
     beforeAll(() => {
       filter = new HttpExceptionFilter();
@@ -168,6 +219,7 @@ describe('HttpExceptionFilter', () => {
       assertResponse(status, expectation);
     });
   });
+
   function assertResponse(
     expectedStatus: number,
     expectedJson: IProblemDetail,

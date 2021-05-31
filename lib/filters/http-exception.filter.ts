@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import {
-  BASE_PROBLEMS_URI,
+  BASE_PROBLEMS_URI_KEY,
   defaultHttpErrors as _defaultHttpErrors,
-  HTTP_ERRORS_MAP,
+  HTTP_ERRORS_MAP_KEY,
 } from './constants';
 
 export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
@@ -17,12 +17,12 @@ export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(
-    @Inject(BASE_PROBLEMS_URI)
+    @Inject(BASE_PROBLEMS_URI_KEY)
     private baseUri = '',
-    @Inject(HTTP_ERRORS_MAP)
+    @Inject(HTTP_ERRORS_MAP_KEY)
     private defaultHttpErrors?,
   ) {
-    this.defaultHttpErrors = _defaultHttpErrors;
+    this.defaultHttpErrors = defaultHttpErrors || _defaultHttpErrors;
   }
 
   catch(exception: HttpException, host: ArgumentsHost) {
