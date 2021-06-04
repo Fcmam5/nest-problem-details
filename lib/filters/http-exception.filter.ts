@@ -36,6 +36,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // eslint-disable-next-line @typescript-eslint/ban-types
     let title: string | object;
     let detail: string | undefined;
+    let instance: string | undefined;
 
     let type: string;
 
@@ -45,6 +46,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (errorResponse.error) {
         title = errorResponse.error;
         detail = errorResponse.message;
+        instance = errorResponse.instance;
       } else {
         title = errorResponse.message;
       }
@@ -55,15 +57,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       .type(PROBLEM_CONTENT_TYPE)
       .status(status)
       .json({
-        type: `${this.baseUri}/${type || this.getType(status)}`,
+        type: `${this.baseUri}/${type || this.getDefaultType(status)}`,
         title,
         status,
         detail,
-        instance: '', // TODO
+        instance,
       });
   }
 
-  private getType(status: number) {
+  private getDefaultType(status: number) {
     return this.defaultHttpErrors[status];
   }
 }
@@ -73,5 +75,6 @@ interface IExceptionResponse {
   error?: string | object;
   message: string;
   type?: string;
+  instance?: string;
   statusCode: number;
 }

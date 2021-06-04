@@ -67,7 +67,6 @@ describe('HttpExceptionFilter', () => {
           title: 'Bad Request',
           status,
           type: '/bad-request',
-          instance: '',
         };
 
         filter.catch(new BadRequestException(), mockArgumentsHost);
@@ -84,7 +83,6 @@ describe('HttpExceptionFilter', () => {
           detail: details,
           status,
           type: '/forbidden',
-          instance: '',
         };
 
         filter.catch(new ForbiddenException(details), mockArgumentsHost);
@@ -102,7 +100,6 @@ describe('HttpExceptionFilter', () => {
           detail: details,
           status,
           type: '/forbidden',
-          instance: '',
         };
 
         filter.catch(
@@ -123,7 +120,6 @@ describe('HttpExceptionFilter', () => {
           title: details,
           status,
           type: '/i-am-a-teapot',
-          instance: '',
         };
 
         filter.catch(new HttpException(details, status), mockArgumentsHost);
@@ -142,7 +138,6 @@ describe('HttpExceptionFilter', () => {
           title: errorObject.error,
           status,
           type: '/i-am-a-teapot',
-          instance: '',
         };
 
         filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
@@ -178,20 +173,20 @@ describe('HttpExceptionFilter', () => {
       }).compile();
 
       filter = modRef.get<HttpExceptionFilter>(HTTP_EXCEPTION_FILTER_KEY);
-      console.log(modRef.get<string>(BASE_PROBLEMS_URI_KEY));
     });
 
     it('should map HttpException response when called with an object', () => {
       const errorObject = {
         error: 'I am a teapot',
         status,
+        instance: 'Tea',
       };
 
       const expectation: IProblemDetail = {
         title: errorObject.error,
         status,
         type: 'http://fcmam5.me/problems/some-problem-detail',
-        instance: '',
+        instance: errorObject.instance,
       };
 
       filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
@@ -211,7 +206,6 @@ describe('HttpExceptionFilter', () => {
         title: 'Bad Request',
         status,
         type: '/bad-request',
-        instance: '',
       };
 
       filter.catch(new BadRequestException(), mockArgumentsHost);
