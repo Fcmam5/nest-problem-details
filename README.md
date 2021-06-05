@@ -56,6 +56,10 @@ Problem:
       example: '/problem/connection-error#token-info-read-timed-out'
 ```
 
+### Example projects:
+
+- [`example-with-default-settings/`](./examples/example-with-default-settings/)
+
 ## Resources
 
 - [IETF RFC-7807: Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc7807)

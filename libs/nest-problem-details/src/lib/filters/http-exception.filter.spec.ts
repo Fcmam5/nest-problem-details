@@ -9,7 +9,7 @@ import {
   HttpExceptionFilter,
   PROBLEM_CONTENT_TYPE,
 } from './http-exception.filter';
-import { IProblemDetail } from './http-exception.interface';
+import { IErrorDetail, IProblemDetail } from './http-exception.interface';
 import {
   HTTP_EXCEPTION_FILTER_KEY,
   HTTP_ERRORS_MAP_KEY,
@@ -66,7 +66,7 @@ describe('HttpExceptionFilter', () => {
         const expectation: IProblemDetail = {
           title: 'Bad Request',
           status,
-          type: '/bad-request',
+          type: 'bad-request',
         };
 
         filter.catch(new BadRequestException(), mockArgumentsHost);
@@ -76,36 +76,33 @@ describe('HttpExceptionFilter', () => {
 
       it('should map default exception when thrown with error details', () => {
         const status = HttpStatus.FORBIDDEN;
-        const details = 'you shall not pass!';
+        const title = 'you shall not pass!';
 
         const expectation: IProblemDetail = {
-          title: 'Forbidden',
-          detail: details,
+          title,
           status,
-          type: '/forbidden',
+          type: 'forbidden',
+          detail: 'Forbidden', // TODO defaults are not needed
         };
 
-        filter.catch(new ForbiddenException(details), mockArgumentsHost);
+        filter.catch(new ForbiddenException(title), mockArgumentsHost);
 
         assertResponse(status, expectation);
       });
 
       it('should map default exception when thrown with error details and description', () => {
         const status = HttpStatus.FORBIDDEN;
-        const description = 'Gandalf said';
+        const title = 'Gandalf said';
         const details = 'you shall not pass!';
 
         const expectation: IProblemDetail = {
-          title: description,
+          title,
           detail: details,
           status,
-          type: '/forbidden',
+          type: 'forbidden',
         };
 
-        filter.catch(
-          new ForbiddenException(details, description),
-          mockArgumentsHost
-        );
+        filter.catch(new ForbiddenException(title, details), mockArgumentsHost);
 
         assertResponse(status, expectation);
       });
@@ -114,30 +111,29 @@ describe('HttpExceptionFilter', () => {
     describe('the generic HttpException', () => {
       it('should map HttpException response when called with a string', () => {
         const status = HttpStatus.I_AM_A_TEAPOT;
-        const details = 'you shall not pass!';
+        const title = 'you shall not pass!';
 
         const expectation: IProblemDetail = {
-          title: details,
+          title,
           status,
-          type: '/i-am-a-teapot',
+          type: 'i-am-a-teapot',
         };
 
-        filter.catch(new HttpException(details, status), mockArgumentsHost);
+        filter.catch(new HttpException(title, status), mockArgumentsHost);
 
         assertResponse(status, expectation);
       });
 
       it('should map HttpException response when called with an object', () => {
         const status = HttpStatus.I_AM_A_TEAPOT;
-        const errorObject = {
-          error: 'I am a teapot',
-          status,
+        const errorObject: IErrorDetail = {
+          message: 'I am a teapot',
         };
 
         const expectation: IProblemDetail = {
-          title: errorObject.error,
+          title: errorObject.message,
           status,
-          type: '/i-am-a-teapot',
+          type: 'i-am-a-teapot',
         };
 
         filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
@@ -176,17 +172,19 @@ describe('HttpExceptionFilter', () => {
     });
 
     it('should map HttpException response when called with an object', () => {
-      const errorObject = {
-        error: 'I am a teapot',
-        status,
-        instance: 'Tea',
+      const errorObject: IErrorDetail = {
+        message: 'I am a teapot',
+        error: {
+          instance: 'Tea',
+          type: 'some-problem-detail',
+        },
       };
 
       const expectation: IProblemDetail = {
-        title: errorObject.error,
+        title: errorObject.message,
         status,
         type: 'http://fcmam5.me/problems/some-problem-detail',
-        instance: errorObject.instance,
+        instance: errorObject.error.instance,
       };
 
       filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
@@ -205,7 +203,7 @@ describe('HttpExceptionFilter', () => {
       const expectation: IProblemDetail = {
         title: 'Bad Request',
         status,
-        type: '/bad-request',
+        type: 'bad-request',
       };
 
       filter.catch(new BadRequestException(), mockArgumentsHost);

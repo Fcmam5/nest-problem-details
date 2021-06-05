@@ -1,4 +1,4 @@
-interface IDefaultHTTPErrors {
+export interface IDefaultHTTPErrors {
   [status: number]: string;
 }
 

@@ -37,8 +37,7 @@
           "options": {
             "outputPath": "dist/examples/example-with-default-settings",
             "main": "examples/example-with-default-settings/src/main.ts",
-            "tsConfig": "examples/example-with-default-settings/tsconfig.app.json",
-            "assets": ["examples/example-with-default-settings/src/assets"]
+            "tsConfig": "examples/example-with-default-settings/tsconfig.app.json"
           },
           "configurations": {
             "production": {

@@ -1,7 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { IDragon } from 'src/interfaces/dragon.interface';
-import { DragonsService } from 'src/services/dragons.service';
+import { DragonsService } from '../services/dragons.service';
 import { DragonsController } from './dragons.controller';
 
 const dragons = [

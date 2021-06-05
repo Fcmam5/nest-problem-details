@@ -11,6 +11,7 @@ import {
   defaultHttpErrors as _defaultHttpErrors,
   HTTP_ERRORS_MAP_KEY,
 } from './constants';
+import { IErrorDetail } from './http-exception.interface';
 
 export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 
@@ -20,12 +21,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     @Inject(BASE_PROBLEMS_URI_KEY)
     private baseUri = '',
     @Inject(HTTP_ERRORS_MAP_KEY)
-    private defaultHttpErrors?,
-  ) {
-    this.defaultHttpErrors = defaultHttpErrors || _defaultHttpErrors;
-  }
+    private defaultHttpErrors = _defaultHttpErrors
+  ) {}
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: HttpException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
@@ -33,35 +32,39 @@ export class HttpExceptionFilter implements ExceptionFilter {
       | string
       | IExceptionResponse;
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    let title: string | object;
-    let detail: string | undefined;
-    let instance: string | undefined;
-
-    let type: string;
+    let title: string;
+    let detail;
+    let type:string | undefined;
+    let objectExtras = {};
 
     if (typeof errorResponse === 'string') {
       title = errorResponse;
     } else {
-      if (errorResponse.error) {
-        title = errorResponse.error;
-        detail = errorResponse.message;
-        instance = errorResponse.instance;
+      title = errorResponse.message;
+      if (typeof errorResponse.error === 'string') {
+        detail = errorResponse.error;
       } else {
-        title = errorResponse.message;
+        if (errorResponse.error) {
+          type = errorResponse.error.error?.type;
+          objectExtras = {
+              ...errorResponse.error,
+          };
+       
+        }
       }
-      type = errorResponse.type;
     }
 
     response
       .type(PROBLEM_CONTENT_TYPE)
       .status(status)
       .json({
-        type: `${this.baseUri}/${type || this.getDefaultType(status)}`,
+        ...objectExtras,
+        type: [this.baseUri, type || this.getDefaultType(status)]
+          .filter(Boolean)
+          .join('/'),
         title,
         status,
         detail,
-        instance,
       });
   }
 
@@ -72,7 +75,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 interface IExceptionResponse {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  error?: string | object;
+  error?: string | IErrorDetail;
   message: string;
   type?: string;
   instance?: string;

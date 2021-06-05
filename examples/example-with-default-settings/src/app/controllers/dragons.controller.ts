@@ -4,6 +4,7 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import {
   IDragonListResponse,
@@ -20,14 +21,30 @@ export class DragonsController {
     return { dragons: this.service.getAll() };
   }
 
-  @Get('/:dragonId')
+  @Get('/:id')
   getOneById(
-    @Param('dragonId', ParseIntPipe) dragonId: number
+    @Param('id', ParseIntPipe) id: number,
+    @Query('title') hasTitle?: boolean,
+    @Query('details') hasDetails?: boolean
+    // @Query('has-details') hasDetails?: boolean,
   ): IDragonResponse {
-    const dragon = this.service.getByIdOrNull(dragonId);
+    const dragon = this.service.getByIdOrNull(id);
     if (dragon) {
       return { dragon };
     }
+    
+    if (hasTitle && hasDetails) {
+      throw new NotFoundException(
+        'Dragon not found',
+        `Could not find any dragon with ID: ${id}`
+      );
+    }
+    
+    if (hasTitle) {
+      throw new NotFoundException('Dragon not found');
+    }
+
+    
 
     throw new NotFoundException();
   }

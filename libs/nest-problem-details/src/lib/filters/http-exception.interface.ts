@@ -7,3 +7,12 @@ export interface IProblemDetail {
   instance?: string;
   [key: string]: any;
 }
+
+export interface IErrorDetail {
+  message: string;
+  error?: {
+    type?: string;
+    instance?: string;
+    detail?: string;
+  };
+}

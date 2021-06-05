@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IDragon } from 'src/interfaces/dragon.interface';
+import { IDragon } from '../interfaces/dragon.interface';
 
 @Injectable()
 export class DragonsService {
