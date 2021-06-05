@@ -1,5 +1,5 @@
 module.exports = {
-  displayName: 'nest-http-problem-details',
+  displayName: 'example-with-default-settings',
   preset: '../../jest.preset.js',
   globals: {
     'ts-jest': {
@@ -10,5 +10,5 @@ module.exports = {
     '^.+\\.[tj]s$': 'ts-jest',
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/nest-http-problem-details',
+  coverageDirectory: '../../coverage/examples/example-with-default-settings',
 };

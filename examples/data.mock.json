@@ -1,0 +1,14 @@
+{
+  "dragons": [
+    { "id": 0, "name": "irgin", "title": "The Magnificent" },
+    { "id": 1, "name": "Dyrod", "title": "The Dragonlord" },
+    { "id": 2, "name": "Cylranth", "title": "The Dark One" },
+    { "id": 3, "name": "Frildrass", "title": "The Bright" },
+    { "id": 4, "name": "Tulbom", "title": "The Eternal" },
+    { "id": 5, "name": "Frardir", "title": "Warmheart" },
+    { "id": 6, "name": "Nasiet", "title": "The Powerful" },
+    { "id": 7, "name": "Keghusdoi", "title": "Champion Of The Green" },
+    { "id": 8, "name": "Ythorem", "title": "The Kind" },
+    { "id": 9, "name": "Zilbyntiad", "title": "Champion Of The Red" }
+  ]
+}

@@ -3,21 +3,42 @@
   "cli": {
     "defaultCollection": "@nrwl/nest"
   },
-  "defaultProject": "nest-http-problem-details",
+  "defaultProject": "example-with-default-settings",
   "projects": {
-    "nest-http-problem-details": {
-      "root": "apps/nest-http-problem-details",
-      "sourceRoot": "apps/nest-http-problem-details/src",
+    "nest-problem-details": {
+      "root": "libs/nest-problem-details",
+      "sourceRoot": "libs/nest-problem-details/src",
+      "projectType": "library",
+      "targets": {
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["libs/nest-problem-details/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/nest-problem-details"],
+          "options": {
+            "jestConfig": "libs/nest-problem-details/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "example-with-default-settings": {
+      "root": "examples/example-with-default-settings",
+      "sourceRoot": "examples/example-with-default-settings/src",
       "projectType": "application",
       "targets": {
         "build": {
           "executor": "@nrwl/node:build",
           "outputs": ["{options.outputPath}"],
           "options": {
-            "outputPath": "dist/apps/nest-http-problem-details",
-            "main": "apps/nest-http-problem-details/src/main.ts",
-            "tsConfig": "apps/nest-http-problem-details/tsconfig.app.json",
-            "assets": ["apps/nest-http-problem-details/src/assets"]
+            "outputPath": "dist/examples/example-with-default-settings",
+            "main": "examples/example-with-default-settings/src/main.ts",
+            "tsConfig": "examples/example-with-default-settings/tsconfig.app.json",
+            "assets": ["examples/example-with-default-settings/src/assets"]
           },
           "configurations": {
             "production": {
@@ -26,8 +47,8 @@
               "inspect": false,
               "fileReplacements": [
                 {
-                  "replace": "apps/nest-http-problem-details/src/environments/environment.ts",
-                  "with": "apps/nest-http-problem-details/src/environments/environment.prod.ts"
+                  "replace": "examples/example-with-default-settings/src/environments/environment.ts",
+                  "with": "examples/example-with-default-settings/src/environments/environment.prod.ts"
                 }
               ]
             }
@@ -36,20 +57,22 @@
         "serve": {
           "executor": "@nrwl/node:execute",
           "options": {
-            "buildTarget": "nest-http-problem-details:build"
+            "buildTarget": "example-with-default-settings:build"
           }
         },
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": ["apps/nest-http-problem-details/**/*.ts"]
+            "lintFilePatterns": [
+              "examples/example-with-default-settings/**/*.ts"
+            ]
           }
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/apps/nest-http-problem-details"],
+          "outputs": ["coverage/examples/example-with-default-settings"],
           "options": {
-            "jestConfig": "apps/nest-http-problem-details/jest.config.js",
+            "jestConfig": "examples/example-with-default-settings/jest.config.js",
             "passWithNoTests": true
           }
         }

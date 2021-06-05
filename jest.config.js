@@ -1,3 +1,7 @@
 module.exports = {
-  projects: ['<rootDir>/apps/nest-http-problem-details'],
+  projects: [
+    ,
+    '<rootDir>/libs/nest-problem-details',
+    '<rootDir>/examples/examples/with-default-settings',
+  ],
 };

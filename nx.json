@@ -14,20 +14,21 @@
     "default": {
       "runner": "@nrwl/nx-cloud",
       "options": {
-        "cacheableOperations": [
-          "build",
-          "lint",
-          "test",
-          "e2e"
-        ],
+        "cacheableOperations": ["build", "lint", "test", "e2e"],
         "accessToken": "Mzg5YTllMDAtOWI0ZC00ZmE2LWIwYjMtNGQzMGM3ODEyMTg2fHJlYWQtd3JpdGU=",
         "canTrackAnalytics": false,
         "showUsageWarnings": true
       }
     }
   },
+  "workspaceLayout": {
+    "appsDir": "examples"
+  },
   "projects": {
-    "nest-http-problem-details": {
+    "nest-problem-details": {
+      "tags": []
+    },
+    "example-with-default-settings": {
       "tags": []
     }
   }
