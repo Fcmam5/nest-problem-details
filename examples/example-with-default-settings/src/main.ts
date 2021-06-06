@@ -5,7 +5,7 @@
 
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { HttpExceptionFilter } from '@nest-http-problem-details/nest-problem-details-filter';
+import { HttpExceptionFilter } from 'nest-problem-details-filter';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {

@@ -15,10 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@nest-http-problem-details/nest-problem-details": [
-        "libs/nest-problem-details/src/index.ts"
-      ],
-      "@nest-http-problem-details/nest-problem-details-filter": [
+      "nest-problem-details-filter": [
         "libs/nest-problem-details-filter/src/index.ts"
       ]
     }
