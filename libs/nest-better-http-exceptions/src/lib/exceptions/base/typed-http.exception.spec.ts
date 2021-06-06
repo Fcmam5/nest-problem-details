@@ -1,17 +1,21 @@
-import { IErrorDetail } from '../interfaces/error-detail.interface';
+import { IErrorDetail } from '../../interfaces/error-detail.interface';
 import { TypedHttpException } from './typed-http.exception';
 
 class TypedHttpExceptionChild extends TypedHttpException {
   constructor(objectOrError?: string | IErrorDetail, message?: string) {
-    super(objectOrError, message);
+    super(objectOrError, message, 599);
   }
 }
 
 describe('TypedHttpException', () => {
   describe('TypedHttpException children', () => {
+    it('should return the status', () => {
+      expect(new TypedHttpExceptionChild().getStatus()).toBe(599);
+    });
     it('should return error message', () => {
       expect(new TypedHttpExceptionChild('Bad Gateway').getResponse()).toEqual({
-        message: 'Bad Gateway',
+        title: 'Bad Gateway',
+        status: 599,
       });
     });
 
@@ -22,8 +26,9 @@ describe('TypedHttpException', () => {
           'Something went wrong'
         ).getResponse()
       ).toEqual({
-        message: 'Bad Gateway',
-        error: 'Something went wrong',
+        title: 'Bad Gateway',
+        detail: 'Something went wrong',
+        status: 599,
       });
     });
 
@@ -41,14 +46,13 @@ describe('TypedHttpException', () => {
       expect(
         new TypedHttpExceptionChild(errDetails, errorTitle).getResponse()
       ).toEqual({
-        message: errorTitle,
-        error: {
-          accounts: ['/account/12345', '/account/67890'],
-          balance: 30,
-          detail: 'Your current balance is 30, but that costs 50.',
-          instance: '/account/12345/msgs/abc',
-          type: 'https://example.com/probs/out-of-credit',
-        },
+        title: errorTitle,
+        accounts: ['/account/12345', '/account/67890'],
+        balance: 30,
+        detail: 'Your current balance is 30, but that costs 50.',
+        instance: '/account/12345/msgs/abc',
+        type: 'https://example.com/probs/out-of-credit',
+        status: 599,
       });
     });
   });

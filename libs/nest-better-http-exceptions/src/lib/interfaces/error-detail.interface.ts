@@ -5,7 +5,7 @@ export interface IErrorDetail {
   [key: string]: unknown;
 }
 
-export interface IErrorResponse {
-  message: string;
-  error?: string | IErrorDetail;
+export interface IErrorResponse extends IErrorDetail {
+  title: string;
+  status: number;
 }
