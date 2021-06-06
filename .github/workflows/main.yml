@@ -2,9 +2,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [master, develop]
 
 jobs:
   build:
@@ -13,14 +13,19 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 15.x]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        # os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run build --if-present
       - run: npm test
+      - name: Nrwl Nx
+        uses: MansaGroup/nrwl-nx-action@v2.1.0
+        with:
+          targets: lint,test,build
