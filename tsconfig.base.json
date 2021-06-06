@@ -15,7 +15,12 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@nest-http-problem-details": ["libs/nest-problem-details/src/index.ts"]
+      "@nest-http-problem-details/nest-problem-details": [
+        "libs/nest-problem-details/src/index.ts"
+      ],
+      "@nest-http-problem-details/nest-http-problem-details": [
+        "libs/nest-http-problem-details/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

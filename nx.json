@@ -25,10 +25,10 @@
     "appsDir": "examples"
   },
   "projects": {
-    "nest-problem-details": {
+    "example-with-default-settings": {
       "tags": []
     },
-    "example-with-default-settings": {
+    "nest-http-problem-details": {
       "tags": []
     }
   }
