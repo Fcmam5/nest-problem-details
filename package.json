@@ -1,7 +1,16 @@
 {
   "name": "nest-http-problem-details",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fcmam5/nest-http-problem-details.git"
+  },
+  "author": "Abdeldjalil Fortas (https://fcmam5.me)",
+  "bugs": {
+    "url": "https://github.com/Fcmam5/nest-http-problem-details/issues"
+  },
+  "homepage": "https://github.com/Fcmam5/nest-http-problem-details#readme",
   "scripts": {
     "nx": "nx",
     "start": "nx serve",
