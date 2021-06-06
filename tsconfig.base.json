@@ -17,7 +17,8 @@
     "paths": {
       "nest-problem-details-filter": [
         "libs/nest-problem-details-filter/src/index.ts"
-      ]
+      ],
+      "nest-better-http-exceptions": ["libs/nest-better-http-exceptions/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

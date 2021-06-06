@@ -12,7 +12,9 @@
       "targets": {
         "build": {
           "executor": "@nrwl/node:build",
-          "outputs": ["{options.outputPath}"],
+          "outputs": [
+            "{options.outputPath}"
+          ],
           "options": {
             "outputPath": "dist/examples/example-with-default-settings",
             "main": "examples/example-with-default-settings/src/main.ts",
@@ -48,7 +50,9 @@
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/examples/example-with-default-settings"],
+          "outputs": [
+            "coverage/examples/example-with-default-settings"
+          ],
           "options": {
             "jestConfig": "examples/example-with-default-settings/jest.config.js",
             "passWithNoTests": true
@@ -63,27 +67,75 @@
       "targets": {
         "build": {
           "executor": "@nrwl/node:package",
-          "outputs": ["{options.outputPath}"],
+          "outputs": [
+            "{options.outputPath}"
+          ],
           "options": {
             "outputPath": "dist/libs/nest-problem-details-filter",
             "tsConfig": "libs/nest-problem-details-filter/tsconfig.lib.json",
             "packageJson": "libs/nest-problem-details-filter/package.json",
             "main": "libs/nest-problem-details-filter/src/index.ts",
-            "assets": ["libs/nest-problem-details-filter/*.md"]
+            "assets": [
+              "libs/nest-problem-details-filter/*.md"
+            ]
           }
         },
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": ["libs/nest-problem-details-filter/**/*.ts"]
+            "lintFilePatterns": [
+              "libs/nest-problem-details-filter/**/*.ts"
+            ]
           }
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/libs/nest-problem-details-filter"],
+          "outputs": [
+            "coverage/libs/nest-problem-details-filter"
+          ],
           "options": {
             "jestConfig": "libs/nest-problem-details-filter/jest.config.js",
             "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "nest-better-http-exceptions": {
+      "root": "libs/nest-better-http-exceptions",
+      "sourceRoot": "libs/nest-better-http-exceptions/src",
+      "projectType": "library",
+      "targets": {
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/nest-better-http-exceptions/**/*.ts"
+            ]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/nest-better-http-exceptions"
+          ],
+          "options": {
+            "jestConfig": "libs/nest-better-http-exceptions/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "build": {
+          "executor": "@nrwl/node:package",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "outputPath": "dist/libs/nest-better-http-exceptions",
+            "tsConfig": "libs/nest-better-http-exceptions/tsconfig.lib.json",
+            "packageJson": "libs/nest-better-http-exceptions/package.json",
+            "main": "libs/nest-better-http-exceptions/src/index.ts",
+            "assets": [
+              "libs/nest-better-http-exceptions/*.md"
+            ]
           }
         }
       }

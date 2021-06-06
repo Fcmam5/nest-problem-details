@@ -30,6 +30,9 @@
     },
     "nest-problem-details-filter": {
       "tags": []
+    },
+    "nest-better-http-exceptions": {
+      "tags": []
     }
   }
 }
