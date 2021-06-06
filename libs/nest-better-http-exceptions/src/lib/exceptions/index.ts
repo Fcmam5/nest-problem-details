@@ -1,0 +1,23 @@
+export { TypedHttpException } from './base/typed-http.exception';
+
+export { BadGatewayException } from './bad-gateway.exception';
+export { BadRequestException } from './bad-request.exception';
+export { ConflictException } from './conflict.exception';
+export { ForbiddenException } from './forbidden.exception';
+export { GatewayTimeoutException } from './gateway-timeout.exception';
+export { GoneException } from './gone.exception';
+export { HttpVersionNotSupportedException } from './http-version-not-supported.exception';
+export { ImATeapotException } from './im-a-teapot.exception';
+export { InternalServerErrorException } from './internal-server-error.exception';
+export { MethodNotAllowedException } from './method-not-allowed.exception';
+export { MisdirectedException } from './misdirected.exception';
+export { NotAcceptableException } from './not-acceptable.exception';
+export { NotFoundException } from './not-found.exception';
+export { NotImplementedException } from './not-implemented.exception';
+export { PayloadTooLargeException } from './payload-too-large.exception';
+export { PreconditionFailedException } from './precondition-failed.exception';
+export { RequestTimeoutException } from './request-timeout.exception';
+export { ServiceUnavailableException } from './service-unavailable.exception';
+export { UnauthorizedException } from './unauthorized.exception';
+export { UnprocessableEntityException } from './unprocessable-entity.exception';
+export { UnsupportedMediaTypeException } from './unsupported-media-type.exception';
