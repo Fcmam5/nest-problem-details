@@ -32,19 +32,17 @@ export class DragonsController {
     if (dragon) {
       return { dragon };
     }
-    
+
     if (hasTitle && hasDetails) {
       throw new NotFoundException(
         'Dragon not found',
         `Could not find any dragon with ID: ${id}`
       );
     }
-    
+
     if (hasTitle) {
       throw new NotFoundException('Dragon not found');
     }
-
-    
 
     throw new NotFoundException();
   }

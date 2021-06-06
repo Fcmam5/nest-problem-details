@@ -5,7 +5,7 @@ export interface IProblemDetail {
   type: string;
   detail?: string;
   instance?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface IErrorDetail {
