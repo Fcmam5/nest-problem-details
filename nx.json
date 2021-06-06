@@ -28,7 +28,7 @@
     "example-with-default-settings": {
       "tags": []
     },
-    "nest-http-problem-details": {
+    "rfc7807-filter": {
       "tags": []
     }
   }

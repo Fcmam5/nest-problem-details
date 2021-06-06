@@ -56,33 +56,33 @@
         }
       }
     },
-    "nest-http-problem-details": {
-      "root": "libs/nest-http-problem-details",
-      "sourceRoot": "libs/nest-http-problem-details/src",
+    "rfc7807-filter": {
+      "root": "libs/rfc7807-filter",
+      "sourceRoot": "libs/rfc7807-filter/src",
       "projectType": "library",
       "targets": {
         "build": {
           "executor": "@nrwl/node:package",
           "outputs": ["{options.outputPath}"],
           "options": {
-            "outputPath": "dist/libs/nest-http-problem-details",
-            "tsConfig": "libs/nest-http-problem-details/tsconfig.lib.json",
-            "packageJson": "libs/nest-http-problem-details/package.json",
-            "main": "libs/nest-http-problem-details/src/index.ts",
-            "assets": ["libs/nest-http-problem-details/*.md"]
+            "outputPath": "dist/libs/rfc7807-filter",
+            "tsConfig": "libs/rfc7807-filter/tsconfig.lib.json",
+            "packageJson": "libs/rfc7807-filter/package.json",
+            "main": "libs/rfc7807-filter/src/index.ts",
+            "assets": ["libs/rfc7807-filter/*.md"]
           }
         },
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": ["libs/nest-http-problem-details/**/*.ts"]
+            "lintFilePatterns": ["libs/rfc7807-filter/**/*.ts"]
           }
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/libs/nest-http-problem-details"],
+          "outputs": ["coverage/libs/rfc7807-filter"],
           "options": {
-            "jestConfig": "libs/nest-http-problem-details/jest.config.js",
+            "jestConfig": "libs/rfc7807-filter/jest.config.js",
             "passWithNoTests": true
           }
         }
