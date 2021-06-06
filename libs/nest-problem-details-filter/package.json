@@ -1,5 +1,5 @@
 {
-  "name": "nest-http-problem-details",
+  "name": "nest-problem-details-filter",
   "version": "0.0.1",
   "description": "RFC-7807 conform HTTP problem details Nest.js filter",
   "license": "MIT",

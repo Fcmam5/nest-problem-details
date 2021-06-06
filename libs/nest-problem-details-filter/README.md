@@ -65,12 +65,11 @@ Problem:
 - [IETF RFC-7807: Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc7807)
 - [Zalando RESTful API:](https://opensource.zalando.com/restful-api-guidelines/#176)
 - And of course, Nest's awesome community:
+
   - [Exception filters](https://docs.nestjs.com/exception-filters#exception-filters-1)
   - [@kamilmysliwiec's comment](https://github.com/nestjs/nest/issues/2953#issuecomment-531678153)
 
-
 - This library was generated using [Nx](https://nx.dev).
-
 
 ## License
 

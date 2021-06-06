@@ -28,7 +28,7 @@
     "example-with-default-settings": {
       "tags": []
     },
-    "rfc7807-filter": {
+    "nest-problem-details-filter": {
       "tags": []
     }
   }

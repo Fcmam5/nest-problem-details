@@ -18,8 +18,8 @@
       "@nest-http-problem-details/nest-problem-details": [
         "libs/nest-problem-details/src/index.ts"
       ],
-      "@nest-http-problem-details/rfc7807-filter": [
-        "libs/rfc7807-filter/src/index.ts"
+      "@nest-http-problem-details/nest-problem-details-filter": [
+        "libs/nest-problem-details-filter/src/index.ts"
       ]
     }
   },

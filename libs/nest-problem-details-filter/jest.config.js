@@ -1,5 +1,5 @@
 module.exports = {
-  displayName: 'rfc7807-filter',
+  displayName: 'nest-problem-details-filter',
   preset: '../../jest.preset.js',
   globals: {
     'ts-jest': {
@@ -11,5 +11,5 @@ module.exports = {
     '^.+\\.[tj]sx?$': 'ts-jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../coverage/libs/rfc7807-filter',
+  coverageDirectory: '../../coverage/libs/nest-problem-details-filter',
 };
