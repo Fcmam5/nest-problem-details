@@ -1,8 +1,12 @@
 # NestHttpProblemDetails(RFC-7807)
 
-This project was generated using [Nx](https://nx.dev).
+A global exception filter to convert HTTP errors to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant format.
 
-## Example output
+## Libraries
+
+### [`nest-problem-details-filter`](./libs/nest-problem-details-filter/)
+
+A NestJS exception filter to convert JSON responses to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant format.
 
 ### OpenAPI schema
 
@@ -58,7 +62,7 @@ Problem:
 
 ### Example projects:
 
-- [`example-with-default-settings/`](./examples/example-with-default-settings/)
+- [`express-example-with-default-settings/`](./examples/express-example-with-default-settings/)
 
 ## Resources
 

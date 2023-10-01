@@ -1,5 +1,4 @@
-name: Node.js CI
-
+name: Main pipeline
 on:
   push:
     branches: [master, develop]
@@ -7,25 +6,21 @@ on:
     branches: [master, develop]
 
 jobs:
-  build:
+  nest-problem-details-filter:
+    defaults:
+      run:
+        working-directory: libs/nest-problem-details-filter  
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 15.x]
-        # os: [ubuntu-latest, windows-latest, macOS-latest]
+        node-version: [16.x, 18.x, 20.x]
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
+      - run: npm install
       - run: npm test
-      - name: Nrwl Nx
-        uses: MansaGroup/nrwl-nx-action@v2.1.0
-        with:
-          targets: lint,test,build
+      - run: npm run lint

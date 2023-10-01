@@ -1,2 +1,2 @@
-export { NestProblemDetailsModule } from './lib/nest-problem-details.module';
-export { HttpExceptionFilter } from './lib/filters/http-exception.filter';
+export { NestProblemDetailsModule } from './nest-problem-details.module';
+export { HttpExceptionFilter } from './filters/http-exception.filter';

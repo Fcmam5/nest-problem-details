@@ -1,39 +1,35 @@
 {
-  "name": "nest-problem-details-filter",
+  "name": "example-with-default-settings",
   "version": "0.0.1",
-  "license": "MIT",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist/"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Fcmam5/nest-http-problem-details.git"
-  },
-  "author": "Abdeldjalil Fortas (Fcmam5)",
-  "bugs": {
-    "url": "https://github.com/Fcmam5/nest-http-problem-details/issues"
-  },
-  "homepage": "https://github.com/Fcmam5/nest-http-problem-details#readme",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "prepack": "rm -rf dist && npm run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "lint:fix": "npm run lint -- --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
   },
-  "devDependencies": {
+  "dependencies": {
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "nest-problem-details-filter": "file:../../libs/nest-problem-details-filter/nest-problem-details-filter-0.0.1.tgz",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
+    "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
     "@types/node": "^20.3.1",
     "@typescript-eslint/eslint-plugin": "^5.59.11",

@@ -5,7 +5,6 @@ import {
   HttpException,
   Inject,
 } from '@nestjs/common';
-import { Response } from 'express';
 import {
   BASE_PROBLEMS_URI_KEY,
   defaultHttpErrors as _defaultHttpErrors,
@@ -21,12 +20,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     @Inject(BASE_PROBLEMS_URI_KEY)
     private baseUri = '',
     @Inject(HTTP_ERRORS_MAP_KEY)
-    private defaultHttpErrors = _defaultHttpErrors
+    private defaultHttpErrors = _defaultHttpErrors,
   ) {}
 
   catch(exception: HttpException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+    const response = ctx.getResponse();
     const status = exception.getStatus();
     const errorResponse = exception.getResponse() as
       | string
