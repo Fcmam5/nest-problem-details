@@ -1,0 +1,25 @@
+
+name: Release Node.js Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release-nest-problem-details-filter:
+    defaults:
+      run:
+        working-directory: libs/nest-problem-details-filter  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install
+      - run: npm test
+      - run: npm run lint
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
