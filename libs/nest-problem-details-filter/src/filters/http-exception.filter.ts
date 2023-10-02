@@ -55,7 +55,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     response
       .type(PROBLEM_CONTENT_TYPE)
       .status(status)
-      .json({
+      .send({
         ...objectExtras,
         type: [this.baseUri, type || this.getDefaultType(status)]
           .filter(Boolean)

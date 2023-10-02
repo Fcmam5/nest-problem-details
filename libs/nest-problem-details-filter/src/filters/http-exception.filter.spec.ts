@@ -17,10 +17,10 @@ import {
 } from './constants';
 import { NestProblemDetailsModule } from '../nest-problem-details.module';
 
-const mockJson = jest.fn();
+const mockSend = jest.fn();
 
 const mockStatus = jest.fn().mockImplementation(() => ({
-  json: mockJson,
+  send: mockSend,
 }));
 
 const mockType = jest.fn().mockImplementation(() => ({
@@ -214,10 +214,10 @@ describe('HttpExceptionFilter', () => {
 
   function assertResponse(
     expectedStatus: number,
-    expectedJson: IProblemDetail
+    expectedJson: IProblemDetail,
   ) {
     expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
     expect(mockStatus).toHaveBeenCalledWith(expectedStatus);
-    expect(mockJson).toHaveBeenCalledWith(expectedJson);
+    expect(mockSend).toHaveBeenCalledWith(expectedJson);
   }
 });

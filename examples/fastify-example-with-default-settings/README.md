@@ -14,7 +14,10 @@ import { AppModule } from './app/app.module';
 async function bootstrap() {
   ...
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(),
+  );
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
@@ -29,18 +32,17 @@ async function bootstrap() {
 ```bash
 # curl -i http://localhost:3333/some-wrong-path
 HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: application/problem+json; charset=utf-8
-Content-Length: 92
-Date: Sat, 05 Jun 2021 20:10:48 GMT
+content-type: application/problem+json; charset=utf-8
+content-length: 92
+Date: Mon, 02 Oct 2023 08:36:31 GMT
 Connection: keep-alive
-Keep-Alive: timeout=5
+Keep-Alive: timeout=72
 
-{
-  "type": "not-found",
-  "title": "Cannot GET /some-wrong-path",
-  "status": 404,
-  "detail": "Not Found"
+{ 
+  "type":"not-found",
+  "title":"Cannot GET /some-wrong-path",
+  "status":404,
+  "detail":"Not Found"
 }
 ```
 
@@ -60,12 +62,11 @@ throw new NotFoundException();
 # curl -i http://localhost:3333/api/dragons/99
 
 HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: application/problem+json; charset=utf-8
-Content-Length: 53
-Date: Sat, 05 Jun 2021 16:48:37 GMT
+content-type: application/problem+json; charset=utf-8
+content-length: 53
+Date: Mon, 02 Oct 2023 08:37:29 GMT
 Connection: keep-alive
-Keep-Alive: timeout=5
+Keep-Alive: timeout=72
 
 {
   "type": "not-found",
@@ -90,12 +91,11 @@ throw new NotFoundException('Dragon not found');
 # curl -i http://localhost:3333/api/dragons/99?title=true
 
 HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: application/problem+json; charset=utf-8
-Content-Length: 81
-Date: Sat, 05 Jun 2021 20:15:58 GMT
+content-type: application/problem+json; charset=utf-8
+content-length: 81
+Date: Mon, 02 Oct 2023 08:37:57 GMT
 Connection: keep-alive
-Keep-Alive: timeout=5
+Keep-Alive: timeout=72
 
 {
   "type": "not-found",
@@ -121,12 +121,11 @@ throw new NotFoundException('Dragon not found');
 # curl -i http://localhost:3333/api/dragons/99?title=true
 
 HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: application/problem+json; charset=utf-8
-Content-Length: 81
-Date: Sat, 05 Jun 2021 20:15:58 GMT
+content-type: application/problem+json; charset=utf-8
+content-length: 81
+Date: Mon, 02 Oct 2023 08:38:16 GMT
 Connection: keep-alive
-Keep-Alive: timeout=5
+Keep-Alive: timeout=72
 
 {
   "type": "not-found",
@@ -155,12 +154,11 @@ throw new NotFoundException(
 # curl -i http://localhost:3333/api/dragons/99?title=true&details=true
 
 HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: application/problem+json; charset=utf-8
-Content-Length: 109
-Date: Sat, 05 Jun 2021 20:18:42 GMT
+content-type: application/problem+json; charset=utf-8
+content-length: 109
+Date: Mon, 02 Oct 2023 08:39:01 GMT
 Connection: keep-alive
-Keep-Alive: timeout=5
+Keep-Alive: timeout=72
 
 {
   "type": "not-found",

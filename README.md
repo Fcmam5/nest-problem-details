@@ -1,12 +1,49 @@
 # NestHttpProblemDetails(RFC-7807)
 
-A global exception filter to convert HTTP errors to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant format.
+Make NestJS return [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant HTTP problem details.
+
+<!-- omit from toc --> 
+## Table of contents:
+
+- [NestHttpProblemDetails(RFC-7807)](#nesthttpproblemdetailsrfc-7807)
+  - [Libraries](#libraries)
+    - [`nest-problem-details-filter`](#nest-problem-details-filter)
+      - [Usage](#usage)
+        - [As a global filter](#as-a-global-filter)
+    - [OpenAPI schema](#openapi-schema)
+    - [Example projects:](#example-projects)
+  - [Resources](#resources)
+  - [License](#license)
 
 ## Libraries
 
 ### [`nest-problem-details-filter`](./libs/nest-problem-details-filter/)
 
 A NestJS exception filter to convert JSON responses to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant format.
+
+#### Usage
+
+See [NestJS documentation](https://docs.nestjs.com/exception-filters#binding-filters) on how to bind exception filters.
+
+##### As a global filter
+
+In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter())` as the following
+
+```ts
+import { NestFactory } from '@nestjs/core';
+import { HttpExceptionFilter } from 'nest-problem-details-filter';
+import { AppModule } from './app/app.module';
+
+async function bootstrap() {
+  ...
+
+  const app = await NestFactory.create(AppModule);
+
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  ...
+}
+```
 
 ### OpenAPI schema
 
@@ -63,6 +100,7 @@ Problem:
 ### Example projects:
 
 - [`express-example-with-default-settings/`](./examples/express-example-with-default-settings/)
+- [`fastify-example-with-default-settings/`](./examples/fastify-example-with-default-settings/)
 
 ## Resources
 
