@@ -1,6 +1,6 @@
 # NestHttpProblemDetails(RFC-7807)
 
-Make NestJS return [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant HTTP problem details.
+Make NestJS return [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-compliant HTTP problem details.
 
 <!-- omit from toc --> 
 ## Table of contents:
@@ -21,11 +21,21 @@ Make NestJS return [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-c
 
 ### [`nest-problem-details-filter`](./libs/nest-problem-details-filter/)
 
-A NestJS exception filter to convert JSON responses to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-cmpliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`
+A NestJS exception filter to convert JSON responses to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`
 
 #### Usage
 
-See [NestJS documentation](https://docs.nestjs.com/exception-filters#binding-filters) on how to bind exception filters.
+Install the library with:
+
+```bash
+# npm
+npm i nest-problem-details-filter
+
+# or, pnpm
+pnpm i nest-problem-details-filter
+```
+
+Then check [NestJS documentation](https://docs.nestjs.com/exception-filters#binding-filters) on how to bind exception filters.
 
 ##### As a global filter
 
@@ -44,6 +54,23 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   ...
+}
+```
+
+`HttpExceptionFilter` accepts a base URI for if you want to return absolute URIs for your problem types, e.g:
+
+```ts
+  app.useGlobalFilters(new HttpExceptionFilter('https://example.org'));
+```
+
+Will return:
+
+```json
+{
+  "type": "https://example.org/not-found",
+  "title": "Dragon not found",
+  "status": 404,
+  "detail": "Could not find any dragon with ID: 99"
 }
 ```
 
