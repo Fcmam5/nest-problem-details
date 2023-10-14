@@ -1,6 +1,6 @@
 # NestHttpProblemDetails(RFC-7807)
 
-A NestJS exception filter to convert JSON responses to [RFC-7807]((https://datatracker.ietf.org/doc/html/rfc7807))-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`
+A NestJS exception filter to convert JSON responses to [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`
 
 #### Usage
 

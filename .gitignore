@@ -219,4 +219,5 @@ $RECYCLE.BIN/
 
 
 libs/**/package-lock.json
+libs/**/pnpm-lock.yaml
 TODO.md
