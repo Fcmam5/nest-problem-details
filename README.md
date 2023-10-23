@@ -39,7 +39,7 @@ Then check [NestJS documentation](https://docs.nestjs.com/exception-filters#bind
 
 ##### As a global filter
 
-In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter())` as the following
+In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter()))` as the following
 
 ```ts
 import { NestFactory } from '@nestjs/core';
@@ -51,7 +51,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter()));
 
   ...
 }

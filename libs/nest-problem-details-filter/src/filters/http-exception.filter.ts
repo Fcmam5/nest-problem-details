@@ -5,6 +5,7 @@ import {
   HttpException,
   Inject,
 } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
 import {
   BASE_PROBLEMS_URI_KEY,
   defaultHttpErrors as _defaultHttpErrors,
@@ -17,6 +18,10 @@ export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(
+    @Inject(HttpAdapterHost)
+    private readonly httpAdapterOrHost:
+      | HttpAdapterHost
+      | HttpAdapterHost['httpAdapter'],
     @Inject(BASE_PROBLEMS_URI_KEY)
     private baseUri = '',
     @Inject(HTTP_ERRORS_MAP_KEY)
@@ -24,6 +29,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
   ) {}
 
   catch(exception: HttpException, host: ArgumentsHost): void {
+    // Using the HttpAdapterHost allows us to support both
+    // the HttpAdapterHost and the HttpAdapterHost.httpAdapter for an easier API.
+    const httpAdapter =
+      // Using property in operator instead of instanceof for flexibility sake.
+      'httpAdapter' in this.httpAdapterOrHost
+        ? this.httpAdapterOrHost.httpAdapter
+        : this.httpAdapterOrHost;
+
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const status = exception.getStatus();
@@ -52,18 +65,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     }
 
-    response
-      .type(PROBLEM_CONTENT_TYPE)
-      .status(status)
-      .send({
-        ...objectExtras,
-        type: [this.baseUri, type || this.getDefaultType(status)]
-          .filter(Boolean)
-          .join('/'),
-        title,
-        status,
-        detail,
-      });
+    const responseBody = {
+      ...objectExtras,
+      type: [this.baseUri, type || this.getDefaultType(status)]
+        .filter(Boolean)
+        .join('/'),
+      title,
+      status,
+      detail,
+    };
+    httpAdapter
+      .setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE)
+      .reply(response, responseBody, status);
   }
 
   private getDefaultType(status: number) {
