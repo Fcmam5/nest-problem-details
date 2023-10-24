@@ -16,20 +16,9 @@ import {
   BASE_PROBLEMS_URI_KEY,
 } from './constants';
 import { NestProblemDetailsModule } from '../nest-problem-details.module';
+import { HttpAdapterHost } from '@nestjs/core';
 
-const mockSend = jest.fn();
-
-const mockStatus = jest.fn().mockImplementation(() => ({
-  send: mockSend,
-}));
-
-const mockType = jest.fn().mockImplementation(() => ({
-  status: mockStatus,
-}));
-
-const mockGetResponse = jest.fn().mockImplementation(() => ({
-  type: mockType,
-}));
+const mockGetResponse = jest.fn().mockImplementation(() => ({}));
 
 const mockHttpArgumentsHost = jest.fn().mockImplementation(() => ({
   getResponse: mockGetResponse,
@@ -45,6 +34,16 @@ const mockArgumentsHost = {
   switchToWs: jest.fn(),
 };
 
+const mockHttpAdapter = {
+  setHeader: jest.fn().mockReturnThis(),
+  reply: jest.fn().mockReturnThis(),
+} as unknown as HttpAdapterHost['httpAdapter'];
+const mockHttpAdatperHost = {
+  get httpAdapter() {
+    return mockHttpAdapter;
+  },
+} as unknown as Pick<HttpAdapterHost, 'httpAdapter'>;
+
 describe('HttpExceptionFilter', () => {
   let filter: HttpExceptionFilter;
 
@@ -56,7 +55,10 @@ describe('HttpExceptionFilter', () => {
     beforeAll(async () => {
       const modRef = await Test.createTestingModule({
         imports: [NestProblemDetailsModule],
-      }).compile();
+      })
+        .overrideProvider(HttpAdapterHost)
+        .useValue(mockHttpAdatperHost)
+        .compile();
       filter = modRef.get<HttpExceptionFilter>(HTTP_EXCEPTION_FILTER_KEY);
     });
 
@@ -154,6 +156,10 @@ describe('HttpExceptionFilter', () => {
         imports: [],
         providers: [
           {
+            provide: HttpAdapterHost,
+            useValue: mockHttpAdatperHost,
+          },
+          {
             provide: HTTP_ERRORS_MAP_KEY,
             useValue: customErrorsMap,
           },
@@ -193,9 +199,12 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
-  describe('when used outside a module', () => {
+  describe.each([
+    ['HttpAdapterHost', mockHttpAdatperHost as HttpAdapterHost],
+    ['HttpAdapter', mockHttpAdapter as HttpAdapterHost['httpAdapter']],
+  ])('when used outside a module -- using %s', (_, httpAdapterOrHost) => {
     beforeAll(() => {
-      filter = new HttpExceptionFilter();
+      filter = new HttpExceptionFilter(httpAdapterOrHost);
     });
 
     it('should map default exception when thrown with not parameters', () => {
@@ -216,8 +225,15 @@ describe('HttpExceptionFilter', () => {
     expectedStatus: number,
     expectedJson: IProblemDetail,
   ) {
-    expect(mockType).toHaveBeenCalledWith(PROBLEM_CONTENT_TYPE);
-    expect(mockStatus).toHaveBeenCalledWith(expectedStatus);
-    expect(mockSend).toHaveBeenCalledWith(expectedJson);
+    expect(mockHttpAdatperHost.httpAdapter.setHeader).toHaveBeenCalledWith(
+      mockGetResponse(),
+      'Content-Type',
+      PROBLEM_CONTENT_TYPE,
+    );
+    expect(mockHttpAdatperHost.httpAdapter.reply).toHaveBeenCalledWith(
+      mockGetResponse(),
+      expectedJson,
+      expectedStatus,
+    );
   }
 });

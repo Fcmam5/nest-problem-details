@@ -19,7 +19,7 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter()));
 
   ...
 }

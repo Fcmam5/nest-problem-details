@@ -18,7 +18,7 @@ Then check [NestJS documentation](https://docs.nestjs.com/exception-filters#bind
 
 ##### As a global filter
 
-In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter())` as the following
+In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter()))` as the following
 
 ```ts
 import { NestFactory } from '@nestjs/core';
@@ -30,16 +30,19 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  const httpAdapterHost = app.get(App)
+  app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter()));
 
   ...
 }
 ```
 
+Note that the `app.getHttpAdapter()` argument is needed because the `HttpExceptionFilter` works for any kind of NestJS HTTP adapter!
+
 `HttpExceptionFilter` accepts a base URI for if you want to return absolute URIs for your problem types, e.g:
 
 ```ts
-  app.useGlobalFilters(new HttpExceptionFilter('https://example.org'));
+  app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter(), 'https://example.org'));
 ```
 
 Will return:
