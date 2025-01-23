@@ -25,7 +25,7 @@ export class DragonsController {
   getOneById(
     @Param('id', ParseIntPipe) id: number,
     @Query('title') hasTitle?: boolean,
-    @Query('details') hasDetails?: boolean
+    @Query('details') hasDetails?: boolean,
     // @Query('has-details') hasDetails?: boolean,
   ): IDragonResponse {
     const dragon = this.service.getByIdOrNull(id);
@@ -36,7 +36,7 @@ export class DragonsController {
     if (hasTitle && hasDetails) {
       throw new NotFoundException(
         'Dragon not found',
-        `Could not find any dragon with ID: ${id}`
+        `Could not find any dragon with ID: ${id}`,
       );
     }
 

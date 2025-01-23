@@ -85,7 +85,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 }
 
 interface IExceptionResponse {
-  // eslint-disable-next-line @typescript-eslint/ban-types
   error?: string | IErrorDetail;
   message: string;
   type?: string;
