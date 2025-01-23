@@ -7,7 +7,7 @@ This example app uses [`HttpExceptionFilter`]() with no configuration.
 In `main.ts`
 
 ```ts
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { HttpExceptionFilter } from 'nest-problem-details-filter';
 import { AppModule } from './app/app.module';
 
@@ -16,7 +16,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalFilters(new HttpExceptionFilter(app.getHttpAdapter()));
+  app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
 
   ...
 }

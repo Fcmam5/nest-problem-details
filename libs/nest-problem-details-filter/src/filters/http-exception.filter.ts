@@ -74,9 +74,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status,
       detail,
     };
-    httpAdapter
-      .setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE)
-      .reply(response, responseBody, status);
+
+    httpAdapter.setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE);
+    httpAdapter.reply(response, responseBody, status);
   }
 
   private getDefaultType(status: number) {
