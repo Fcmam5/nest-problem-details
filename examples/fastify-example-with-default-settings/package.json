@@ -21,7 +21,7 @@
     "@nestjs/common": "^11.0.4",
     "@nestjs/core": "^11.0.4",
     "@nestjs/platform-fastify": "^11.0.4",
-    "nest-problem-details-filter": "file:../../libs/nest-problem-details-filter/nest-problem-details-filter-1.0.0.tgz",
+    "nest-problem-details-filter": "file:../../libs/nest-problem-details-filter/nest-problem-details-filter-1.0.1.tgz",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

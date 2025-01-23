@@ -40,9 +40,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const status = exception.getStatus();
-    const errorResponse = exception.getResponse() as
-      | string
-      | IExceptionResponse;
+    const errorResponse = exception.getResponse() as string | IErrorDetail;
 
     let title: string;
     let detail;
@@ -57,7 +55,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         detail = errorResponse.error;
       } else {
         if (errorResponse.error) {
-          type = errorResponse.error.error?.type;
+          type = errorResponse.error.type;
+          detail = errorResponse.error.detail;
           objectExtras = {
             ...errorResponse.error,
           };
@@ -82,12 +81,4 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private getDefaultType(status: number) {
     return this.defaultHttpErrors[status];
   }
-}
-
-interface IExceptionResponse {
-  error?: string | IErrorDetail;
-  message: string;
-  type?: string;
-  instance?: string;
-  statusCode: number;
 }

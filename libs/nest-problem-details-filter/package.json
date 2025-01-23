@@ -1,6 +1,6 @@
 {
   "name": "nest-problem-details-filter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,8 +18,8 @@
   "homepage": "https://github.com/Fcmam5/nest-http-problem-details#readme",
   "scripts": {
     "build": "nest build",
-    "prepack": "rm -rf dist && npm run build",
-    "prepublish": "rm -rf dist && npm run build",
+    "prepack": "shx rm -rf dist && npm run build",
+    "prepublish": "shx rm -rf dist && npm run build",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "lint:fix": "npm run lint -- --fix",
@@ -48,6 +48,7 @@
     "prettier": "^3.4.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "shx": "^0.3.4",
     "source-map-support": "^0.5.21",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",

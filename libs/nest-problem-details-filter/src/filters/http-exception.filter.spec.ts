@@ -44,6 +44,23 @@ const mockHttpAdatperHost = {
   },
 } as unknown as Pick<HttpAdapterHost, 'httpAdapter'>;
 
+// Example business error
+class BusinessErrorException extends HttpException {
+  constructor(message: string, detail?: string, instance?: string) {
+    super(
+      {
+        message,
+        error: {
+          type: 'business-error',
+          detail,
+          instance,
+        },
+      },
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}
+
 describe('HttpExceptionFilter', () => {
   let filter: HttpExceptionFilter;
 
@@ -194,6 +211,65 @@ describe('HttpExceptionFilter', () => {
       };
 
       filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
+
+      assertResponse(status, expectation);
+    });
+  });
+
+  describe('BusinessErrorException', () => {
+    it('should map BusinessErrorException with custom type', () => {
+      const status = HttpStatus.BAD_REQUEST;
+      const message = 'A business error occurred';
+
+      const expectation: IProblemDetail = {
+        title: message,
+        status,
+        type: 'http://fcmam5.me/problems/business-error', // Include base URI
+      };
+
+      filter.catch(new BusinessErrorException(message), mockArgumentsHost);
+
+      assertResponse(status, expectation);
+    });
+
+    it('should map BusinessErrorException with custom type and additional details', () => {
+      const status = HttpStatus.BAD_REQUEST;
+      const message = 'A business error occurred with details';
+      const detail = 'Additional error details';
+
+      const expectation: IProblemDetail = {
+        title: message,
+        status,
+        type: 'http://fcmam5.me/problems/business-error', // Include base URI
+        detail,
+      };
+
+      filter.catch(
+        new BusinessErrorException(message, detail),
+        mockArgumentsHost,
+      );
+
+      assertResponse(status, expectation);
+    });
+
+    it('should map BusinessErrorException with custom type, details, and instance', () => {
+      const status = HttpStatus.BAD_REQUEST;
+      const message = 'A business error occurred with details and instance';
+      const detail = 'Additional error details';
+      const instance = 'instance-123';
+
+      const expectation: IProblemDetail = {
+        title: message,
+        status,
+        type: 'http://fcmam5.me/problems/business-error', // Include base URI
+        detail,
+        instance,
+      };
+
+      filter.catch(
+        new BusinessErrorException(message, detail, instance),
+        mockArgumentsHost,
+      );
 
       assertResponse(status, expectation);
     });
