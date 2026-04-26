@@ -57,6 +57,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       } else {
         if (errorResponse.error) {
           type = errorResponse.error.type;
+          detail = errorResponse.error.detail;
           objectExtras = {
             ...errorResponse.error,
           };
