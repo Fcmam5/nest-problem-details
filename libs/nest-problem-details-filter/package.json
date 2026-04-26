@@ -1,6 +1,6 @@
 {
   "name": "nest-problem-details-filter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A NestJS exception filter to convert JSON responses to RFC-7807-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`",
   "license": "MIT",
   "main": "dist/index.js",
