@@ -30,7 +30,6 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  const httpAdapterHost = app.get(App)
   app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
 
   ...

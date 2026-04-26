@@ -25,16 +25,28 @@ export const defaultHttpErrors: IDefaultHTTPErrors = {
   421: 'misdirected',
   422: 'unprocessable-entity',
   424: 'failed-dependency',
+  425: 'too-early',
+  426: 'upgrade-required',
+  428: 'precondition-required',
   429: 'too-many-requests',
+  431: 'request-header-fields-too-large',
+  451: 'unavailable-for-legal-reasons',
   500: 'internal-server-error',
   501: 'not-implemented',
   502: 'bad-gateway',
   503: 'service-unavailable',
   504: 'gateway-timeout',
   505: 'http-version-not-supported',
+  506: 'variant-also-negotiates',
+  507: 'insufficient-storage',
+  508: 'loop-detected',
+  510: 'not-extended',
+  511: 'network-authentication-required',
 };
 
 // Provider keys
 export const BASE_PROBLEMS_URI_KEY = 'BASE_PROBLEMS_URI';
 export const HTTP_ERRORS_MAP_KEY = 'HTTP_ERRORS_MAP';
 export const HTTP_EXCEPTION_FILTER_KEY = 'HTTP_EXCEPTION_FILTER';
+
+export const PROBLEM_CONTENT_TYPE = 'application/problem+json';

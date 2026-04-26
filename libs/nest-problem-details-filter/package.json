@@ -1,6 +1,7 @@
 {
   "name": "nest-problem-details-filter",
-  "version": "1.1.1",
+  "version": "1.2.0",
+  "description": "A NestJS exception filter to convert JSON responses to RFC-7807-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,6 +17,20 @@
     "url": "https://github.com/Fcmam5/nest-http-problem-details/issues"
   },
   "homepage": "https://github.com/Fcmam5/nest-http-problem-details#readme",
+  "keywords": [
+    "nestjs",
+    "nest",
+    "problem-details",
+    "rfc7807",
+    "http",
+    "api",
+    "rest",
+    "json"
+  ],
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/Fcmam5"
+  },
   "scripts": {
     "build": "nest build",
     "prepack": "rm -rf dist && npm run build",
@@ -52,5 +67,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^9.0.0 || ^10.0.0 || ^11.0.0",
+    "@nestjs/core": "^9.0.0 || ^10.0.0 || ^11.0.0"
   }
 }

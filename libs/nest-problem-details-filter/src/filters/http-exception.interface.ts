@@ -14,5 +14,6 @@ export interface IErrorDetail {
     type?: string;
     instance?: string;
     detail?: string;
+    [key: string]: unknown;
   };
 }

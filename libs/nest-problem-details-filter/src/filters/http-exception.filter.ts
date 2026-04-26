@@ -10,18 +10,15 @@ import {
   BASE_PROBLEMS_URI_KEY,
   defaultHttpErrors as _defaultHttpErrors,
   HTTP_ERRORS_MAP_KEY,
+  PROBLEM_CONTENT_TYPE,
 } from './constants';
 import { IErrorDetail } from './http-exception.interface';
-
-export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(
     @Inject(HttpAdapterHost)
-    private readonly httpAdapterOrHost:
-      | HttpAdapterHost
-      | HttpAdapterHost['httpAdapter'],
+    private readonly httpAdapterHost: HttpAdapterHost,
     @Inject(BASE_PROBLEMS_URI_KEY)
     private baseUri = '',
     @Inject(HTTP_ERRORS_MAP_KEY)
@@ -29,13 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   ) {}
 
   catch(exception: HttpException, host: ArgumentsHost): void {
-    // Using the HttpAdapterHost allows us to support both
-    // the HttpAdapterHost and the HttpAdapterHost.httpAdapter for an easier API.
-    const httpAdapter =
-      // Using property in operator instead of instanceof for flexibility sake.
-      'httpAdapter' in this.httpAdapterOrHost
-        ? this.httpAdapterOrHost.httpAdapter
-        : this.httpAdapterOrHost;
+    const httpAdapter = this.httpAdapterHost.httpAdapter;
 
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -47,7 +38,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let title: string;
     let detail;
     let type: string | undefined;
-    let objectExtras = {};
+    let objectExtras;
 
     if (typeof errorResponse === 'string') {
       title = errorResponse;
@@ -57,10 +48,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         detail = errorResponse.error;
       } else {
         if (errorResponse.error) {
-          type = errorResponse.error.type;
-          objectExtras = {
-            ...errorResponse.error,
-          };
+          const { type: _type, detail: _detail, ...rest } = errorResponse.error;
+          type = _type;
+          detail = _detail;
+          objectExtras = rest;
         }
       }
     }
@@ -80,7 +71,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private getDefaultType(status: number) {
-    return this.defaultHttpErrors[status];
+    if (status < 100 || status > 599) {
+      return 'unsupported-http-code';
+    }
+    return this.defaultHttpErrors[status] ?? 'unknown-error';
   }
 }
 

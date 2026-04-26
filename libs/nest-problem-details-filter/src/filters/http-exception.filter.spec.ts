@@ -5,15 +5,13 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  HttpExceptionFilter,
-  PROBLEM_CONTENT_TYPE,
-} from './http-exception.filter';
+import { HttpExceptionFilter } from './http-exception.filter';
 import { IErrorDetail, IProblemDetail } from './http-exception.interface';
 import {
   HTTP_EXCEPTION_FILTER_KEY,
   HTTP_ERRORS_MAP_KEY,
   BASE_PROBLEMS_URI_KEY,
+  PROBLEM_CONTENT_TYPE,
 } from './constants';
 import { NestProblemDetailsModule } from '../nest-problem-details.module';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -84,7 +82,7 @@ describe('HttpExceptionFilter', () => {
           title,
           status,
           type: 'forbidden',
-          detail: 'Forbidden', // TODO defaults are not needed
+          detail: 'Forbidden',
         };
 
         filter.catch(new ForbiddenException(title), mockArgumentsHost);
@@ -105,6 +103,68 @@ describe('HttpExceptionFilter', () => {
         };
 
         filter.catch(new ForbiddenException(title, details), mockArgumentsHost);
+
+        assertResponse(status, expectation);
+      });
+
+      it('should fallback to unknown-error for valid but unmapped status codes', () => {
+        const status = 452; // Not a standard HTTP status code
+
+        const expectation: IProblemDetail = {
+          title: 'Custom error',
+          status,
+          type: 'unknown-error',
+        };
+
+        filter.catch(
+          new HttpException(expectation.title, status),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
+
+      it('should fallback to unsupported-http-code for non-standard HTTP codes', () => {
+        const status = 999;
+
+        const expectation: IProblemDetail = {
+          title: 'Custom error',
+          status,
+          type: 'unsupported-http-code',
+        };
+
+        filter.catch(
+          new HttpException(expectation.title, status),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
+
+      it('should map custom fields from error object into response body', () => {
+        const status = HttpStatus.FORBIDDEN;
+        const errorObj = {
+          message: 'You do not have enough credit.',
+          error: {
+            type: 'out-of-credit',
+            detail: 'Your current balance is 30, but that costs 50.',
+            instance: '/account/12345/msgs/abc',
+            balance: 30,
+            accounts: ['/account/12345', '/account/67890'],
+          },
+        };
+
+        const expectation = {
+          type: 'out-of-credit',
+          title: 'You do not have enough credit.',
+          status,
+          detail: 'Your current balance is 30, but that costs 50.',
+          instance: '/account/12345/msgs/abc',
+          balance: 30,
+          accounts: ['/account/12345', '/account/67890'],
+        };
+
+        filter.catch(new HttpException(errorObj, status), mockArgumentsHost);
 
         assertResponse(status, expectation);
       });
@@ -199,12 +259,9 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
-  describe.each([
-    ['HttpAdapterHost', mockHttpAdatperHost as HttpAdapterHost],
-    ['HttpAdapter', mockHttpAdapter as HttpAdapterHost['httpAdapter']],
-  ])('when used outside a module -- using %s', (_, httpAdapterOrHost) => {
+  describe('when used outside a module', () => {
     beforeAll(() => {
-      filter = new HttpExceptionFilter(httpAdapterOrHost);
+      filter = new HttpExceptionFilter(mockHttpAdatperHost as HttpAdapterHost);
     });
 
     it('should map default exception when thrown with not parameters', () => {
