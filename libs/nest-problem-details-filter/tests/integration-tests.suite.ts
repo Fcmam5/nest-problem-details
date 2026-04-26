@@ -108,7 +108,7 @@ export function runIntegrationTests(
       });
     });
 
-    it('should map custom error with explicit instance and fall back to default type', async () => {
+    it('should map custom error with explicit type and instance', async () => {
       const response = await request(getServer(app))
         .get(
           '/api/test/custom-error/422?type=validation-failure&instance=field-name',
@@ -116,7 +116,7 @@ export function runIntegrationTests(
         .expect(422);
 
       expect(response.body).toEqual({
-        type: 'unprocessable-entity',
+        type: 'validation-failure',
         title: 'Custom error',
         status: 422,
         instance: 'field-name',
