@@ -7,10 +7,16 @@ on:
 
 jobs:
   release-nest-problem-details-filter:
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://www.npmjs.com/package/nest-problem-details-filter
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         working-directory: libs/nest-problem-details-filter  
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
