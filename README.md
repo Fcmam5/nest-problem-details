@@ -1,11 +1,22 @@
 # NestHttpProblemDetails(RFC-7807)
 
+[![npm version](https://img.shields.io/npm/v/nest-problem-details-filter)](https://www.npmjs.com/package/nest-problem-details-filter)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Main pipeline](https://github.com/Fcmam5/nest-http-problem-details/actions/workflows/main.yml/badge.svg)](https://github.com/Fcmam5/nest-http-problem-details/actions/workflows/main.yml)
+
 Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-compliant HTTP problem details.
+
+## Features
+
+- **RFC-7807 Compliant** - Standardized HTTP problem details
+- **Zero Dependencies** - No runtime dependencies
+- **TypeScript** - Full type support
 
 <!-- omit from toc --> 
 ## Table of contents:
 
 - [NestHttpProblemDetails(RFC-7807)](#nesthttpproblemdetailsrfc-7807)
+  - [Features](#features)
   - [Libraries](#libraries)
     - [`nest-problem-details-filter`](#nest-problem-details-filter)
       - [Usage](#usage)
@@ -13,8 +24,11 @@ Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-com
         - [As a module](#as-a-module)
     - [Example response](#example-response)
     - [OpenAPI schema](#openapi-schema)
-    - [Example projects:](#example-projects)
+    - [Documentation](#documentation)
+  - [Integration tests](#integration-tests)
   - [Resources](#resources)
+  - [Contributing](#contributing)
+  - [Security](#security)
   - [License](#license)
 
 ## Libraries
@@ -173,10 +187,15 @@ Problem:
       example: '/problem/connection-error#token-info-read-timed-out'
 ```
 
-### Example projects:
+### Documentation
 
-- [`express-example-with-default-settings/`](./examples/express-example-with-default-settings/)
-- [`fastify-example-with-default-settings/`](./examples/fastify-example-with-default-settings/)
+Check the [`docs/`](./docs/) folder for usage examples and the OpenAPI schema.
+
+## Integration tests
+
+The library includes reusable integration tests that run against real NestJS applications backed by Express and Fastify to verify that the problem-details filter works correctly with each HTTP adapter. Tests are defined once in a shared suite and executed per platform.
+
+See the test files in [`libs/nest-problem-details-filter/src/filters/__tests__/`](./libs/nest-problem-details-filter/src/filters/__tests__/) for details.
 
 ## Resources
 
@@ -185,6 +204,14 @@ Problem:
 - And of course, Nest's awesome community:
   - [Exception filters](https://docs.nestjs.com/exception-filters#exception-filters-1)
   - [@kamilmysliwiec's comment](https://github.com/nestjs/nest/issues/2953#issuecomment-531678153)
+
+## Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to this project.
+
+## Security
+
+For security-related issues, please review our [SECURITY.md](./SECURITY.md) for responsible disclosure guidelines.
 
 ## License
 

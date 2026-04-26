@@ -57,7 +57,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         detail = errorResponse.error;
       } else {
         if (errorResponse.error) {
-          type = errorResponse.error.error?.type;
+          type = errorResponse.error.type;
           objectExtras = {
             ...errorResponse.error,
           };
@@ -85,9 +85,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 }
 
 interface IExceptionResponse {
-  error?: string | IErrorDetail;
   message: string;
-  type?: string;
-  instance?: string;
+  error?: string | IErrorDetail['error'];
   statusCode: number;
 }

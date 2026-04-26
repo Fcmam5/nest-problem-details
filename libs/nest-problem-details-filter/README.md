@@ -155,10 +155,13 @@ Problem:
       example: '/problem/connection-error#token-info-read-timed-out'
 ```
 
-### Example projects:
+### Documentation
 
-- [`express-example-with-default-settings/`](https://github.com/Fcmam5/nest-problem-details/tree/develop/examples/express-example-with-default-settings/)
-- [`fastify-example-with-default-settings/`](https://github.com/Fcmam5/nest-problem-details/tree/develop/examples/fastify-example-with-default-settings/)
+Check the [`docs/`](../../docs/) folder for usage examples and the OpenAPI schema.
+
+## Integration tests
+
+The library includes reusable integration tests that run against real NestJS applications backed by Express and Fastify to verify that the problem-details filter works correctly with each HTTP adapter.
 
 ## Resources
 

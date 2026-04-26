@@ -1,0 +1,15 @@
+# This library has no production dependencies, I'm adding this FWIW
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/libs/nest-problem-details-filter"
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-type: "production"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
