@@ -46,7 +46,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let title: string;
     let detail;
     let type: string | undefined;
-    let objectExtras = {};
+    let objectExtras;
 
     if (typeof errorResponse === 'string') {
       title = errorResponse;
@@ -56,11 +56,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         detail = errorResponse.error;
       } else {
         if (errorResponse.error) {
-          type = errorResponse.error.type;
-          detail = errorResponse.error.detail;
-          objectExtras = {
-            ...errorResponse.error,
-          };
+          const { type: _type, detail: _detail, ...rest } = errorResponse.error;
+          type = _type;
+          detail = _detail;
+          objectExtras = rest;
         }
       }
     }
