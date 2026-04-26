@@ -2,8 +2,9 @@
 name: Release Node.js Package
 
 on:
+  workflow_dispatch:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   release-nest-problem-details-filter:
@@ -31,3 +32,5 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
