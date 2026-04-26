@@ -140,6 +140,34 @@ describe('HttpExceptionFilter', () => {
 
         assertResponse(status, expectation);
       });
+
+      it('should map custom fields from error object into response body', () => {
+        const status = HttpStatus.FORBIDDEN;
+        const errorObj = {
+          message: 'You do not have enough credit.',
+          error: {
+            type: 'out-of-credit',
+            detail: 'Your current balance is 30, but that costs 50.',
+            instance: '/account/12345/msgs/abc',
+            balance: 30,
+            accounts: ['/account/12345', '/account/67890'],
+          },
+        };
+
+        const expectation = {
+          type: 'out-of-credit',
+          title: 'You do not have enough credit.',
+          status,
+          detail: 'Your current balance is 30, but that costs 50.',
+          instance: '/account/12345/msgs/abc',
+          balance: 30,
+          accounts: ['/account/12345', '/account/67890'],
+        };
+
+        filter.catch(new HttpException(errorObj, status), mockArgumentsHost);
+
+        assertResponse(status, expectation);
+      });
     });
 
     describe('the generic HttpException', () => {
