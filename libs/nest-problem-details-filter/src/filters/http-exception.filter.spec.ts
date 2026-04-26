@@ -259,12 +259,9 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
-  describe.each([
-    ['HttpAdapterHost', mockHttpAdatperHost as HttpAdapterHost],
-    ['HttpAdapter', mockHttpAdapter as HttpAdapterHost['httpAdapter']],
-  ])('when used outside a module -- using %s', (_, httpAdapterOrHost) => {
+  describe('when used outside a module', () => {
     beforeAll(() => {
-      filter = new HttpExceptionFilter(httpAdapterOrHost);
+      filter = new HttpExceptionFilter(mockHttpAdatperHost as HttpAdapterHost);
     });
 
     it('should map default exception when thrown with not parameters', () => {

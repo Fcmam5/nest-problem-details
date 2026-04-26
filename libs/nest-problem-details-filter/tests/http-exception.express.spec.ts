@@ -1,5 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { INestApplication } from '@nestjs/common';
+import {
+  ExpressAdapter,
+  NestExpressApplication,
+} from '@nestjs/platform-express';
 import { HttpAdapterHost } from '@nestjs/core';
 import { HttpExceptionFilter } from '../src/filters/http-exception.filter';
 import { TestAppModule, TestAppModuleWithModule } from './test-app.module';
@@ -13,7 +17,10 @@ describe('Express', () => {
   runIntegrationTests(
     'as a global filter',
     async () => {
-      const app = await NestFactory.create(TestAppModule);
+      const app = await NestFactory.create<NestExpressApplication>(
+        TestAppModule,
+        new ExpressAdapter(),
+      );
       app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
       await app.init();
       return app;
@@ -24,7 +31,10 @@ describe('Express', () => {
   runIntegrationTests(
     'as a module',
     async () => {
-      const app = await NestFactory.create(TestAppModuleWithModule);
+      const app = await NestFactory.create<NestExpressApplication>(
+        TestAppModuleWithModule,
+        new ExpressAdapter(),
+      );
       await app.init();
       return app;
     },
