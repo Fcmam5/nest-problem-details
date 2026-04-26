@@ -80,7 +80,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private getDefaultType(status: number) {
-    return this.defaultHttpErrors[status];
+    if (status < 100 || status > 599) {
+      return 'unsupported-http-code';
+    }
+    return this.defaultHttpErrors[status] ?? 'unknown-error';
   }
 }
 

@@ -82,7 +82,7 @@ describe('HttpExceptionFilter', () => {
           title,
           status,
           type: 'forbidden',
-          detail: 'Forbidden', // TODO defaults are not needed
+          detail: 'Forbidden',
         };
 
         filter.catch(new ForbiddenException(title), mockArgumentsHost);
@@ -103,6 +103,40 @@ describe('HttpExceptionFilter', () => {
         };
 
         filter.catch(new ForbiddenException(title, details), mockArgumentsHost);
+
+        assertResponse(status, expectation);
+      });
+
+      it('should fallback to unknown-error for valid but unmapped status codes', () => {
+        const status = 452; // Not a standard HTTP status code
+
+        const expectation: IProblemDetail = {
+          title: 'Custom error',
+          status,
+          type: 'unknown-error',
+        };
+
+        filter.catch(
+          new HttpException(expectation.title, status),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
+
+      it('should fallback to unsupported-http-code for non-standard HTTP codes', () => {
+        const status = 999;
+
+        const expectation: IProblemDetail = {
+          title: 'Custom error',
+          status,
+          type: 'unsupported-http-code',
+        };
+
+        filter.catch(
+          new HttpException(expectation.title, status),
+          mockArgumentsHost,
+        );
 
         assertResponse(status, expectation);
       });
