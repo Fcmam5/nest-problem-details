@@ -10,10 +10,9 @@ import {
   BASE_PROBLEMS_URI_KEY,
   defaultHttpErrors as _defaultHttpErrors,
   HTTP_ERRORS_MAP_KEY,
+  PROBLEM_CONTENT_TYPE,
 } from './constants';
 import { IErrorDetail } from './http-exception.interface';
-
-export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {

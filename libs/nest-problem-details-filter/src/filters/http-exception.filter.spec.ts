@@ -5,15 +5,13 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  HttpExceptionFilter,
-  PROBLEM_CONTENT_TYPE,
-} from './http-exception.filter';
+import { HttpExceptionFilter } from './http-exception.filter';
 import { IErrorDetail, IProblemDetail } from './http-exception.interface';
 import {
   HTTP_EXCEPTION_FILTER_KEY,
   HTTP_ERRORS_MAP_KEY,
   BASE_PROBLEMS_URI_KEY,
+  PROBLEM_CONTENT_TYPE,
 } from './constants';
 import { NestProblemDetailsModule } from '../nest-problem-details.module';
 import { HttpAdapterHost } from '@nestjs/core';
