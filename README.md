@@ -24,7 +24,8 @@ Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-com
         - [As a module](#as-a-module)
     - [Example response](#example-response)
     - [OpenAPI schema](#openapi-schema)
-    - [Example projects:](#example-projects)
+    - [Documentation](#documentation)
+  - [Integration tests](#integration-tests)
   - [Resources](#resources)
   - [Contributing](#contributing)
   - [Security](#security)
@@ -186,10 +187,15 @@ Problem:
       example: '/problem/connection-error#token-info-read-timed-out'
 ```
 
-### Example projects:
+### Documentation
 
-- [`express-example-with-default-settings/`](./examples/express-example-with-default-settings/)
-- [`fastify-example-with-default-settings/`](./examples/fastify-example-with-default-settings/)
+Check the [`docs/`](./docs/) folder for usage examples and the OpenAPI schema.
+
+## Integration tests
+
+The library includes reusable integration tests that run against real NestJS applications backed by Express and Fastify to verify that the problem-details filter works correctly with each HTTP adapter. Tests are defined once in a shared suite and executed per platform.
+
+See the test files in [`libs/nest-problem-details-filter/src/filters/__tests__/`](./libs/nest-problem-details-filter/src/filters/__tests__/) for details.
 
 ## Resources
 
