@@ -24,6 +24,9 @@ jobs:
           node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Install latest npm
+        run: npm install -g npm@latest # See: https://github.com/orgs/community/discussions/173102#discussioncomment-15340466
+
       - run: npm install
       - run: npm run lint
       - run: npm test
