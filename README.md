@@ -1,11 +1,22 @@
 # NestHttpProblemDetails(RFC-7807)
 
+[![npm version](https://img.shields.io/npm/v/nest-problem-details-filter)](https://www.npmjs.com/package/nest-problem-details-filter)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Main pipeline](https://github.com/Fcmam5/nest-http-problem-details/actions/workflows/main.yml/badge.svg)](https://github.com/Fcmam5/nest-http-problem-details/actions/workflows/main.yml)
+
 Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-compliant HTTP problem details.
+
+## Features
+
+- **RFC-7807 Compliant** - Standardized HTTP problem details
+- **Zero Dependencies** - No runtime dependencies
+- **TypeScript** - Full type support
 
 <!-- omit from toc --> 
 ## Table of contents:
 
 - [NestHttpProblemDetails(RFC-7807)](#nesthttpproblemdetailsrfc-7807)
+  - [Features](#features)
   - [Libraries](#libraries)
     - [`nest-problem-details-filter`](#nest-problem-details-filter)
       - [Usage](#usage)
@@ -15,6 +26,8 @@ Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-com
     - [OpenAPI schema](#openapi-schema)
     - [Example projects:](#example-projects)
   - [Resources](#resources)
+  - [Contributing](#contributing)
+  - [Security](#security)
   - [License](#license)
 
 ## Libraries
@@ -185,6 +198,14 @@ Problem:
 - And of course, Nest's awesome community:
   - [Exception filters](https://docs.nestjs.com/exception-filters#exception-filters-1)
   - [@kamilmysliwiec's comment](https://github.com/nestjs/nest/issues/2953#issuecomment-531678153)
+
+## Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to this project.
+
+## Security
+
+For security-related issues, please review our [SECURITY.md](./SECURITY.md) for responsible disclosure guidelines.
 
 ## License
 

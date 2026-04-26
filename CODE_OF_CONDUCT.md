@@ -110,6 +110,48 @@ individual, or aggression toward or disparagement of classes of individuals.
 **Consequence**: A permanent ban from any sort of public interaction within
 the community.
 
+## AI Usage Policy
+
+### Contributor AI Guidelines
+
+#### Allowed Uses
+
+- **Learning and exploration**: Using AI to understand concepts or existing code
+- **Code suggestions**: Getting ideas or approaches for implementation
+- **Documentation assistance**: Improving wording or structure of documentation
+- **Debugging help**: Identifying potential issues in code
+- **Security reviews**: Getting feedback on security best practices
+
+#### Required Workflow for AI-Assisted Contributions
+
+1. **Issue First**: Always file an issue describing the problem or feature before implementing
+2. **Discussion**: Wait for community discussion and approval before proceeding
+3. **Human Review**: All AI-generated code must be thoroughly reviewed by a human
+4. **Testing**: AI-assisted changes must be manually tested before submission
+5. **Attribution**: Clearly acknowledge AI assistance in pull requests
+
+#### Prohibited Uses
+
+- **Direct submission**: Do not submit AI-generated code without human review
+- **Automated agents**: No automated bots or AI agents may contribute directly
+- **Bulk changes**: Avoid large-scale AI-generated refactoring
+- **Dependency management**: AI should not choose or update dependencies
+
+#### Requirements for AI-Assisted Contributions
+
+- **Minimal changes**: Keep AI-assisted changes focused and minimal
+- **Human understanding**: Contributors must fully understand the changes they submit
+- **Manual verification**: All AI suggestions must be manually verified and tested
+- **Code quality**: AI-assisted code must meet project standards and guidelines
+
+### Human-Only Contributions
+
+- All contributions must be submitted by humans
+- Automated agents, bots, or AI systems may not directly contribute
+- Pull requests must be created and maintained by human contributors
+- Code reviews must be performed by human maintainers
+
+
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],
