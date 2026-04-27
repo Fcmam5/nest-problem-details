@@ -8,7 +8,7 @@ import {
 import { HttpAdapterHost } from '@nestjs/core';
 import {
   BASE_PROBLEMS_URI_KEY,
-  defaultHttpErrors as _defaultHttpErrors,
+  DEFAULT_HTTP_ERRORS,
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
@@ -22,7 +22,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     @Inject(BASE_PROBLEMS_URI_KEY)
     private baseUri = '',
     @Inject(HTTP_ERRORS_MAP_KEY)
-    private defaultHttpErrors = _defaultHttpErrors,
+    private defaultHttpErrors = DEFAULT_HTTP_ERRORS,
   ) {}
 
   catch(exception: HttpException, host: ArgumentsHost): void {
