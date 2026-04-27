@@ -1,6 +1,6 @@
 {
   "name": "nest-problem-details-filter",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "A NestJS exception filter to convert JSON responses to RFC-7807-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`",
   "license": "MIT",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
     "url": "https://github.com/sponsors/Fcmam5"
   },
   "scripts": {
-    "build": "nest build",
+    "build": "rm -f tsconfig.build.tsbuildinfo && nest build",
     "prepublishOnly": "rm -rf dist && npm run build",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
