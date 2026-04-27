@@ -22,3 +22,5 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: npm run test:cov
+      - run: npm run build # Test build, ain't falling for #16 again
+      

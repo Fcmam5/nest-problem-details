@@ -2,7 +2,7 @@ export interface IDefaultHTTPErrors {
   [status: number]: string;
 }
 
-export const defaultHttpErrors: IDefaultHTTPErrors = {
+export const DEFAULT_HTTP_ERRORS: IDefaultHTTPErrors = {
   400: 'bad-request',
   401: 'unauthorized',
   402: 'payment-required',
