@@ -3,11 +3,78 @@ name: Release Node.js Package
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to npm'
+        type: boolean
+        required: true
+        default: false
   release:
     types: [published]
 
 jobs:
-  release-nest-problem-details-filter:
+  build-and-verify:
+    name: Build, Test & Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: libs/nest-problem-details-filter
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install latest npm
+        run: npm install -g npm@latest
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package.json') }}
+          restore-keys: ${{ runner.os }}-npm-
+
+      - run: npm install
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+      - name: Pack tarball (dry-run inspection)
+        run: |
+          mkdir -p /tmp/pack
+          npm pack --pack-destination /tmp/pack
+          tarball=$(ls /tmp/pack/*.tgz)
+          sha256sum "$tarball" > /tmp/pack/sha256sum.txt
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          ### Package contents
+          \`\`\`
+          $(tar -tzf "$tarball")
+          \`\`\`
+          ### SHA-256
+          \`\`\`
+          $(cat /tmp/pack/sha256sum.txt)
+          \`\`\`
+          EOF
+          echo "=== Package contents ==="
+          tar -tzf "$tarball"
+          echo "=== SHA-256 ==="
+          cat /tmp/pack/sha256sum.txt
+
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: npm-tarball
+          path: /tmp/pack/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish to npm
+    needs: build-and-verify
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish)
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -17,21 +84,28 @@ jobs:
       id-token: write
     defaults:
       run:
-        working-directory: libs/nest-problem-details-filter  
+        working-directory: libs/nest-problem-details-filter
     steps:
       - uses: actions/checkout@v6
+
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install latest npm
-        run: npm install -g npm@latest # See: https://github.com/orgs/community/discussions/173102#discussioncomment-15340466
+        run: npm install -g npm@latest
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package.json') }}
+          restore-keys: ${{ runner.os }}-npm-
 
       - run: npm install
-      - run: npm run lint
-      - run: npm test
       - run: npm run build
-      - run: npm publish --access public
+
+      - name: Publish to npm
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
