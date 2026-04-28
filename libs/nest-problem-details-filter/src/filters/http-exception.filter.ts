@@ -6,9 +6,11 @@ import {
   Inject,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import { STATUS_CODES } from 'http';
 import {
   BASE_PROBLEMS_URI_KEY,
   DEFAULT_HTTP_ERRORS,
+  DEFAULT_PROBLEM_TYPE,
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
@@ -35,7 +37,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       | string
       | IExceptionResponse;
 
-    let title: string;
+    let title: string | undefined;
     let detail;
     let type: string | undefined;
     let objectExtras;
@@ -58,10 +60,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const responseBody = {
       ...objectExtras,
-      type: [this.baseUri, type || this.getDefaultType(status)]
-        .filter(Boolean)
-        .join('/'),
-      title,
+      type: this.resolveType(type, status),
+      title: title ?? STATUS_CODES[status] ?? 'Error',
       status,
       detail,
     };
@@ -70,11 +70,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     httpAdapter.reply(response, responseBody, status);
   }
 
-  private getDefaultType(status: number) {
-    if (status < 100 || status > 599) {
-      return 'unsupported-http-code';
+  private resolveType(type: string | undefined, status: number): string {
+    const resolved = type ?? this.getDefaultType(status);
+    // Per RFC 9457 §4.2.1, the default "about:blank" type MUST NOT be prefixed.
+    if (resolved === DEFAULT_PROBLEM_TYPE) {
+      return DEFAULT_PROBLEM_TYPE;
     }
-    return this.defaultHttpErrors[status] ?? 'unknown-error';
+    return [this.baseUri, resolved].filter(Boolean).join('/');
+  }
+
+  private getDefaultType(status: number): string {
+    return this.defaultHttpErrors[status] ?? DEFAULT_PROBLEM_TYPE;
   }
 }
 

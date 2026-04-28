@@ -1,21 +1,23 @@
-# NestHttpProblemDetails(RFC-7807)
+# NestHttpProblemDetails (RFC 9457 / RFC 7807)
 
 [![npm version](https://img.shields.io/npm/v/nest-problem-details-filter)](https://www.npmjs.com/package/nest-problem-details-filter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Main pipeline](https://github.com/Fcmam5/nest-http-problem-details/actions/workflows/main.yml/badge.svg)](https://github.com/Fcmam5/nest-http-problem-details/actions/workflows/main.yml) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Fcmam5/nest-problem-details?utm_source=oss&utm_medium=github&utm_campaign=Fcmam5%2Fnest-problem-details&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
-Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-compliant HTTP problem details.
+Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (formerly [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807))-compliant **Problem Details for HTTP APIs**.
+
+> Keywords: RFC 9457, RFC 7807, Problem Details, HTTP API errors, NestJS, application/problem+json.
 
 ## Features
 
-- **RFC-7807 Compliant** - Standardized HTTP problem details
+- **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
 - **Zero Dependencies** - No runtime dependencies
 - **TypeScript** - Full type support
 
 <!-- omit from toc --> 
 ## Table of contents:
 
-- [NestHttpProblemDetails(RFC-7807)](#nesthttpproblemdetailsrfc-7807)
+- [NestHttpProblemDetails (RFC 9457 / RFC 7807)](#nesthttpproblemdetails-rfc-9457--rfc-7807)
   - [Features](#features)
   - [Libraries](#libraries)
     - [`nest-problem-details-filter`](#nest-problem-details-filter)
@@ -35,7 +37,7 @@ Make NestJS return [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-com
 
 ### [`nest-problem-details-filter`](./libs/nest-problem-details-filter/)
 
-A NestJS exception filter to convert JSON responses to [RFC-7807](https://datatracker.ietf.org/doc/html/rfc7807)-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`
+A NestJS exception filter to convert JSON responses to [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (formerly [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807))-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`.
 
 #### Usage
 
@@ -199,7 +201,8 @@ See the test files in [`libs/nest-problem-details-filter/src/filters/__tests__/`
 
 ## Resources
 
-- [IETF RFC-7807: Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc7807)
+- [IETF RFC 9457: Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc9457) (obsoletes RFC 7807)
+- [IETF RFC 7807: Problem Details for HTTP APIs (obsoleted)](https://datatracker.ietf.org/doc/html/rfc7807)
 - [Zalando RESTful API:](https://opensource.zalando.com/restful-api-guidelines/#176)
 - And of course, Nest's awesome community:
   - [Exception filters](https://docs.nestjs.com/exception-filters#exception-filters-1)
