@@ -64,7 +64,7 @@ jobs:
           cat /tmp/pack/sha256sum.txt
 
       - name: Upload tarball artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v8
         with:
           name: npm-tarball
           path: /tmp/pack/*.tgz
@@ -82,30 +82,28 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    defaults:
-      run:
-        working-directory: libs/nest-problem-details-filter
     steps:
+      # `.nvmrc` is needed for setup-node and `registry-url` only; we publish
+      # the verified tarball produced by `build-and-verify`, not the workspace.
       - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            libs/nest-problem-details-filter/.nvmrc
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v6
         with:
-          node-version-file: .nvmrc
+          node-version-file: libs/nest-problem-details-filter/.nvmrc
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install latest npm
-        run: npm install -g npm@latest
-
-      - uses: actions/cache@v5
+      - name: Download verified tarball
+        uses: actions/download-artifact@v8
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package.json') }}
-          restore-keys: ${{ runner.os }}-npm-
+          name: npm-tarball
+          path: /tmp/pack
 
-      - run: npm install
-      - run: npm run build
-
-      - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish verified tarball to npm
+        run: |
+          tarball=$(ls /tmp/pack/*.tgz)
+          echo "Publishing $tarball"
+          npm publish "$tarball" --access public --provenance
