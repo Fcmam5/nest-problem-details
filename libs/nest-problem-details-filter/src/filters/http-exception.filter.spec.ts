@@ -107,13 +107,13 @@ describe('HttpExceptionFilter', () => {
         assertResponse(status, expectation);
       });
 
-      it('should fallback to unknown-error for valid but unmapped status codes', () => {
+      it('should fallback to about:blank for valid but unmapped status codes (RFC 9457 §4.2.1)', () => {
         const status = 452; // Not a standard HTTP status code
 
         const expectation: IProblemDetail = {
           title: 'Custom error',
           status,
-          type: 'unknown-error',
+          type: 'about:blank',
         };
 
         filter.catch(
@@ -124,17 +124,34 @@ describe('HttpExceptionFilter', () => {
         assertResponse(status, expectation);
       });
 
-      it('should fallback to unsupported-http-code for non-standard HTTP codes', () => {
+      it('should fallback to about:blank for non-standard HTTP codes', () => {
         const status = 999;
 
         const expectation: IProblemDetail = {
           title: 'Custom error',
           status,
-          type: 'unsupported-http-code',
+          type: 'about:blank',
         };
 
         filter.catch(
           new HttpException(expectation.title, status),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
+
+      it('should fallback title to status reason phrase when message is missing', () => {
+        const status = HttpStatus.NOT_FOUND;
+
+        const expectation: IProblemDetail = {
+          title: 'Not Found',
+          status,
+          type: 'not-found',
+        };
+
+        filter.catch(
+          new HttpException({} as unknown as string, status),
           mockArgumentsHost,
         );
 
@@ -256,6 +273,23 @@ describe('HttpExceptionFilter', () => {
       filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
 
       assertResponse(status, expectation);
+    });
+
+    it('should NOT prefix baseUri when type resolves to about:blank (RFC 9457 §4.2.1)', () => {
+      const unmappedStatus = 452;
+
+      const expectation: IProblemDetail = {
+        title: 'Custom error',
+        status: unmappedStatus,
+        type: 'about:blank',
+      };
+
+      filter.catch(
+        new HttpException(expectation.title, unmappedStatus),
+        mockArgumentsHost,
+      );
+
+      assertResponse(unmappedStatus, expectation);
     });
   });
 

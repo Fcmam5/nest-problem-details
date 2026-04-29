@@ -50,3 +50,8 @@ export const HTTP_ERRORS_MAP_KEY = 'HTTP_ERRORS_MAP';
 export const HTTP_EXCEPTION_FILTER_KEY = 'HTTP_EXCEPTION_FILTER';
 
 export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
+
+// Per RFC 9457 §4.2.1 (formerly RFC 7807 §4.2), the default problem type
+// when none is provided. Implies the problem has no additional semantics
+// beyond the HTTP status code.
+export const DEFAULT_PROBLEM_TYPE = 'about:blank';
