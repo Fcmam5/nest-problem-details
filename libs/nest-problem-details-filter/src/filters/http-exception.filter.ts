@@ -45,6 +45,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (typeof errorResponse === 'string') {
       title = errorResponse;
     } else {
+      // TODO #26: `errorResponse.message` may be `string[]` when Nest's
+      // ValidationPipe is used, which produces a non-string `title` and
+      // violates the RFC 9457 schema. The planned fix keeps `title` as the
+      // status reason phrase and moves the array to the `invalid-params`
+      // extension member (RFC 9457 §3 canonical example). See TODO.md #6
+      // and #13 (`class-validator` mapper, gh#23). Until then, callers must
+      // ensure `message` is a string.
       title = errorResponse.message;
       if (typeof errorResponse.error === 'string') {
         detail = errorResponse.error;
