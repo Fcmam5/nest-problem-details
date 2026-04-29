@@ -36,7 +36,7 @@ const mockHttpAdapter = {
   setHeader: jest.fn().mockReturnThis(),
   reply: jest.fn().mockReturnThis(),
 } as unknown as HttpAdapterHost['httpAdapter'];
-const mockHttpAdatperHost = {
+const mockHttpAdapterHost = {
   get httpAdapter() {
     return mockHttpAdapter;
   },
@@ -55,7 +55,7 @@ describe('HttpExceptionFilter', () => {
         imports: [NestProblemDetailsModule],
       })
         .overrideProvider(HttpAdapterHost)
-        .useValue(mockHttpAdatperHost)
+        .useValue(mockHttpAdapterHost)
         .compile();
       filter = modRef.get<HttpExceptionFilter>(HTTP_EXCEPTION_FILTER_KEY);
     });
@@ -266,7 +266,7 @@ describe('HttpExceptionFilter', () => {
         providers: [
           {
             provide: HttpAdapterHost,
-            useValue: mockHttpAdatperHost,
+            useValue: mockHttpAdapterHost,
           },
           {
             provide: HTTP_ERRORS_MAP_KEY,
@@ -327,7 +327,7 @@ describe('HttpExceptionFilter', () => {
 
   describe('when used outside a module', () => {
     beforeAll(() => {
-      filter = new HttpExceptionFilter(mockHttpAdatperHost as HttpAdapterHost);
+      filter = new HttpExceptionFilter(mockHttpAdapterHost as HttpAdapterHost);
     });
 
     it('should map default exception when thrown with not parameters', () => {
@@ -348,12 +348,12 @@ describe('HttpExceptionFilter', () => {
     expectedStatus: number,
     expectedJson: IProblemDetail,
   ) {
-    expect(mockHttpAdatperHost.httpAdapter.setHeader).toHaveBeenCalledWith(
+    expect(mockHttpAdapterHost.httpAdapter.setHeader).toHaveBeenCalledWith(
       mockGetResponse(),
       'Content-Type',
       PROBLEM_CONTENT_TYPE,
     );
-    expect(mockHttpAdatperHost.httpAdapter.reply).toHaveBeenCalledWith(
+    expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
       mockGetResponse(),
       expectedJson,
       expectedStatus,
