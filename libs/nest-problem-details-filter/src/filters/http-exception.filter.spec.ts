@@ -141,6 +141,23 @@ describe('HttpExceptionFilter', () => {
         assertResponse(status, expectation);
       });
 
+      it('should fallback title to "Error" when both message and status reason phrase are missing', () => {
+        const status = 999; // not in http.STATUS_CODES
+
+        const expectation: IProblemDetail = {
+          title: 'Error',
+          status,
+          type: 'about:blank',
+        };
+
+        filter.catch(
+          new HttpException({} as unknown as string, status),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
+
       it('should fallback title to status reason phrase when message is missing', () => {
         const status = HttpStatus.NOT_FOUND;
 
