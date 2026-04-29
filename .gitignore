@@ -218,6 +218,6 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,linux,windows
 
 
-libs/**/package-lock.json
-libs/**/pnpm-lock.yaml
+package-lock.json
+pnpm-lock.yaml
 TODO.md

@@ -6,10 +6,7 @@ on:
     branches: [master, develop]
 
 jobs:
-  nest-problem-details-filter:
-    defaults:
-      run:
-        working-directory: libs/nest-problem-details-filter  
+  build:
     runs-on: ubuntu-latest
 
     steps:

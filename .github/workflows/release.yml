@@ -18,9 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: libs/nest-problem-details-filter
     steps:
       - uses: actions/checkout@v6
 
@@ -64,7 +61,7 @@ jobs:
           cat /tmp/pack/sha256sum.txt
 
       - name: Upload tarball artifact
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v7
         with:
           name: npm-tarball
           path: /tmp/pack/*.tgz
@@ -86,14 +83,10 @@ jobs:
       # `.nvmrc` is needed for setup-node and `registry-url` only; we publish
       # the verified tarball produced by `build-and-verify`, not the workspace.
       - uses: actions/checkout@v6
-        with:
-          sparse-checkout: |
-            libs/nest-problem-details-filter/.nvmrc
-          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v6
         with:
-          node-version-file: libs/nest-problem-details-filter/.nvmrc
+          node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
 
       - name: Download verified tarball

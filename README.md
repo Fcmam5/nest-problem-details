@@ -19,28 +19,20 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 
 - [NestHttpProblemDetails (RFC 9457 / RFC 7807)](#nesthttpproblemdetails-rfc-9457--rfc-7807)
   - [Features](#features)
-  - [Libraries](#libraries)
-    - [`nest-problem-details-filter`](#nest-problem-details-filter)
-      - [Usage](#usage)
-        - [As a global filter](#as-a-global-filter)
-        - [As a module](#as-a-module)
-    - [Throwing exceptions](#throwing-exceptions)
-    - [Example response](#example-response)
-    - [OpenAPI schema](#openapi-schema)
-    - [Documentation](#documentation)
+  - [Usage](#usage)
+    - [As a global filter](#as-a-global-filter)
+    - [As a module](#as-a-module)
+  - [Throwing exceptions](#throwing-exceptions)
+  - [Example response](#example-response)
+  - [OpenAPI schema](#openapi-schema)
+  - [Documentation](#documentation)
   - [Integration tests](#integration-tests)
   - [Resources](#resources)
   - [Contributing](#contributing)
   - [Security](#security)
   - [License](#license)
 
-## Libraries
-
-### [`nest-problem-details-filter`](./libs/nest-problem-details-filter/)
-
-A NestJS exception filter to convert JSON responses to [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (formerly [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807))-compliant format. This standardizes HTTP responses and sets `Content-Type` to `application/problem+json`.
-
-#### Usage
+## Usage
 
 Install the library with:
 
@@ -54,7 +46,7 @@ pnpm i nest-problem-details-filter
 
 Then check [NestJS documentation](https://docs.nestjs.com/exception-filters#binding-filters) on how to bind exception filters.
 
-##### As a global filter
+### As a global filter
 
 In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)))` as the following
 
@@ -74,6 +66,8 @@ async function bootstrap() {
 }
 ```
 
+Note that the `app.get(HttpAdapterHost)` argument is needed because the `HttpExceptionFilter` works for any kind of [NestJS HTTP adapter](https://docs.nestjs.com/faq/http-adapter)!
+
 `HttpExceptionFilter` accepts a base URI for if you want to return absolute URIs for your problem types, e.g:
 
 ```ts
@@ -91,7 +85,7 @@ Will return:
 }
 ```
 
-##### As a module
+### As a module
 
 The library can be imported as a module, and then can use `HTTP_EXCEPTION_FILTER_KEY` to set `APP_FILTER`
 
@@ -231,7 +225,7 @@ Check the [`docs/`](./docs/) folder for usage examples and the [OpenAPI schema](
 
 The library includes reusable integration tests that run against real NestJS applications backed by Express and Fastify to verify that the problem-details filter works correctly with each HTTP adapter. Tests are defined once in a shared suite and executed per platform.
 
-See the test files in [`libs/nest-problem-details-filter/src/filters/__tests__/`](./libs/nest-problem-details-filter/src/filters/__tests__/) for details.
+See the test files under [`tests/`](./tests/) for details.
 
 ## Resources
 
