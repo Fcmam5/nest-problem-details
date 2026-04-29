@@ -55,13 +55,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       title = errorResponse.message;
       if (typeof errorResponse.error === 'string') {
         detail = errorResponse.error;
-      } else {
-        if (errorResponse.error) {
-          const { type: _type, detail: _detail, ...rest } = errorResponse.error;
-          type = _type;
-          detail = _detail;
-          objectExtras = rest;
-        }
+      } else if (this.isPlainObject(errorResponse.error)) {
+        const { type: _type, detail: _detail, ...rest } = errorResponse.error;
+        type = _type;
+        detail = _detail;
+        objectExtras = rest;
       }
     }
 
@@ -75,6 +73,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     httpAdapter.setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE);
     httpAdapter.reply(response, responseBody, status);
+  }
+
+  /**
+   * Type guard for a non-null, non-array object. Used to safely destructure
+   * `errorResponse.error` without crashing on `number`, `boolean`, `null`,
+   * or array payloads.
+   */
+  private isPlainObject(value: unknown) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   private resolveType(type: string | undefined, status: number): string {

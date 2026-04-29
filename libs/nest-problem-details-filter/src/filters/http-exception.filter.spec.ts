@@ -158,6 +158,38 @@ describe('HttpExceptionFilter', () => {
         assertResponse(status, expectation);
       });
 
+      describe('non-object errorResponse.error (defensive)', () => {
+        const status = HttpStatus.BAD_REQUEST;
+
+        it.each([
+          ['number', 42],
+          ['boolean true', true],
+          ['boolean false', false],
+          ['null', null],
+          ['array', ['a', 'b']],
+        ])(
+          'should not crash and ignore %s payload in error',
+          (_label, value) => {
+            const errorObj = { message: 'oops', error: value as never };
+
+            const expectation: IProblemDetail = {
+              title: 'oops',
+              status,
+              type: 'bad-request',
+            };
+
+            expect(() =>
+              filter.catch(
+                new HttpException(errorObj, status),
+                mockArgumentsHost,
+              ),
+            ).not.toThrow();
+
+            assertResponse(status, expectation);
+          },
+        );
+      });
+
       it('should map custom fields from error object into response body', () => {
         const status = HttpStatus.FORBIDDEN;
         const errorObj = {
