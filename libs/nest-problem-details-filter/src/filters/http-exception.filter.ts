@@ -14,7 +14,7 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
-import { IExceptionResponse } from './http-exception.interface';
+import { IErrorDetail, IExceptionResponse } from './http-exception.interface';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -55,7 +55,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       title = errorResponse.message;
       if (typeof errorResponse.error === 'string') {
         detail = errorResponse.error;
-      } else if (this.isPlainObject(errorResponse.error)) {
+      } else if (this.isErrorObject(errorResponse.error)) {
         const { type: _type, detail: _detail, ...rest } = errorResponse.error;
         type = _type;
         detail = _detail;
@@ -76,11 +76,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   /**
-   * Type guard for a non-null, non-array object. Used to safely destructure
-   * `errorResponse.error` without crashing on `number`, `boolean`, `null`,
-   * or array payloads.
+   * Type guard for the structured `error` payload of an `IExceptionResponse`.
+   * Accepts any non-null, non-array object; rejects primitives, `null`, and
+   * arrays so destructuring is safe.
    */
-  private isPlainObject(value: unknown) {
+  private isErrorObject(
+    value: unknown,
+  ): value is NonNullable<IErrorDetail['error']> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 

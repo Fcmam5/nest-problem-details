@@ -299,7 +299,7 @@ describe('HttpExceptionFilter', () => {
         title: errorObject.message,
         status,
         type: 'http://fcmam5.me/problems/some-problem-detail',
-        instance: errorObject.error.instance,
+        instance: errorObject.error?.instance,
       };
 
       filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
