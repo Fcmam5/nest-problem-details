@@ -89,7 +89,8 @@ None of these are emitted by the library out of the box.
         "header":    { "type": "string", "maxLength": 1024, "description": "Request header name." },
         "code":      { "type": "string", "maxLength": 50 }
       },
-      "required": ["detail"]
+      "required": ["detail"],
+      "additionalProperties": true
     }
   }
 }
