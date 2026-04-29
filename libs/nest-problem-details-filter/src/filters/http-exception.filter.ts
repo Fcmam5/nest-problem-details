@@ -14,7 +14,8 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
-import { IErrorDetail, IExceptionResponse } from './http-exception.interface';
+import { IExceptionResponse } from './http-exception.interface';
+import { isErrorObject } from './type-guards';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -55,7 +56,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       title = errorResponse.message;
       if (typeof errorResponse.error === 'string') {
         detail = errorResponse.error;
-      } else if (this.isErrorObject(errorResponse.error)) {
+      } else if (isErrorObject(errorResponse.error)) {
         const { type: _type, detail: _detail, ...rest } = errorResponse.error;
         type = _type;
         detail = _detail;
@@ -73,17 +74,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     httpAdapter.setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE);
     httpAdapter.reply(response, responseBody, status);
-  }
-
-  /**
-   * Type guard for the structured `error` payload of an `IExceptionResponse`.
-   * Accepts any non-null, non-array object; rejects primitives, `null`, and
-   * arrays so destructuring is safe.
-   */
-  private isErrorObject(
-    value: unknown,
-  ): value is NonNullable<IErrorDetail['error']> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   private resolveType(type: string | undefined, status: number): string {
