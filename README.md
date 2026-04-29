@@ -24,6 +24,7 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
       - [Usage](#usage)
         - [As a global filter](#as-a-global-filter)
         - [As a module](#as-a-module)
+    - [Throwing exceptions](#throwing-exceptions)
     - [Example response](#example-response)
     - [OpenAPI schema](#openapi-schema)
     - [Documentation](#documentation)
@@ -118,6 +119,29 @@ See:
 
 - [Custom providers: Alias providers (`useExisting`)](https://docs.nestjs.com/fundamentals/custom-providers#alias-providers-useexisting)
 - [Using `APP_FILTER` token](https://docs.nestjs.com/exception-filters#binding-filters)
+
+### Throwing exceptions
+
+To produce a Problem Details response, throw either:
+
+- `ProblemDetailsException` — accepts a flat RFC 9457 payload directly (recommended for new code), or
+- a native `HttpException` (`NotFoundException`, `ForbiddenException`, custom subclasses, ...) — the filter recognizes the standard Nest payload shape.
+
+```ts
+import { ProblemDetailsException } from 'nest-problem-details-filter';
+
+throw new ProblemDetailsException({
+  type: 'out-of-credit',
+  title: 'You do not have enough credit.',
+  status: 403,
+  detail: 'Your balance is 30, but that costs 50.',
+  balance: 30,
+});
+```
+
+`type` is optional; when omitted, the filter resolves it from its status-to-type map (or falls back to `about:blank`, per RFC 9457 §4.2.1).
+
+See [`docs/usage.md`](./docs/usage.md) for the full set of examples (including the native `HttpException` form).
 
 ### Example response
 

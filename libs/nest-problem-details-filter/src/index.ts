@@ -1,5 +1,9 @@
 export { NestProblemDetailsModule } from './nest-problem-details.module';
 export { HttpExceptionFilter } from './filters/http-exception.filter';
+export {
+  ProblemDetailsException,
+  ProblemDetailsInput,
+} from './filters/problem-details.exception';
 
 export {
   BASE_PROBLEMS_URI_KEY,
