@@ -14,7 +14,7 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
-import { IErrorDetail } from './http-exception.interface';
+import { IExceptionResponse } from './http-exception.interface';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -96,10 +96,4 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private getDefaultType(status: number): string {
     return this.defaultHttpErrors[status] ?? DEFAULT_PROBLEM_TYPE;
   }
-}
-
-interface IExceptionResponse {
-  message: string;
-  error?: string | IErrorDetail['error'];
-  statusCode: number;
 }
