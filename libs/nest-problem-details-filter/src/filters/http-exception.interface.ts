@@ -19,3 +19,11 @@ export interface IErrorDetail {
     [key: string]: unknown;
   };
 }
+
+// Shape of the payload returned by `HttpException.getResponse()` when not a
+// plain string. Mirrors NestJS's internal exception shape.
+export interface IExceptionResponse {
+  message: string;
+  error?: string | IErrorDetail['error'];
+  statusCode: number;
+}

@@ -14,7 +14,8 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
-import { IErrorDetail } from './http-exception.interface';
+import { IExceptionResponse } from './http-exception.interface';
+import { isErrorObject } from './type-guards';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -55,13 +56,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       title = errorResponse.message;
       if (typeof errorResponse.error === 'string') {
         detail = errorResponse.error;
-      } else {
-        if (errorResponse.error) {
-          const { type: _type, detail: _detail, ...rest } = errorResponse.error;
-          type = _type;
-          detail = _detail;
-          objectExtras = rest;
-        }
+      } else if (isErrorObject(errorResponse.error)) {
+        const { type: _type, detail: _detail, ...rest } = errorResponse.error;
+        type = _type;
+        detail = _detail;
+        objectExtras = rest;
       }
     }
 
@@ -89,10 +88,4 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private getDefaultType(status: number): string {
     return this.defaultHttpErrors[status] ?? DEFAULT_PROBLEM_TYPE;
   }
-}
-
-interface IExceptionResponse {
-  message: string;
-  error?: string | IErrorDetail['error'];
-  statusCode: number;
 }

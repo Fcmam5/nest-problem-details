@@ -36,7 +36,7 @@ const mockHttpAdapter = {
   setHeader: jest.fn().mockReturnThis(),
   reply: jest.fn().mockReturnThis(),
 } as unknown as HttpAdapterHost['httpAdapter'];
-const mockHttpAdatperHost = {
+const mockHttpAdapterHost = {
   get httpAdapter() {
     return mockHttpAdapter;
   },
@@ -55,7 +55,7 @@ describe('HttpExceptionFilter', () => {
         imports: [NestProblemDetailsModule],
       })
         .overrideProvider(HttpAdapterHost)
-        .useValue(mockHttpAdatperHost)
+        .useValue(mockHttpAdapterHost)
         .compile();
       filter = modRef.get<HttpExceptionFilter>(HTTP_EXCEPTION_FILTER_KEY);
     });
@@ -141,6 +141,23 @@ describe('HttpExceptionFilter', () => {
         assertResponse(status, expectation);
       });
 
+      it('should fallback title to "Error" when both message and status reason phrase are missing', () => {
+        const status = 999; // not in http.STATUS_CODES
+
+        const expectation: IProblemDetail = {
+          title: 'Error',
+          status,
+          type: 'about:blank',
+        };
+
+        filter.catch(
+          new HttpException({} as unknown as string, status),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, expectation);
+      });
+
       it('should fallback title to status reason phrase when message is missing', () => {
         const status = HttpStatus.NOT_FOUND;
 
@@ -156,6 +173,38 @@ describe('HttpExceptionFilter', () => {
         );
 
         assertResponse(status, expectation);
+      });
+
+      describe('non-object errorResponse.error (defensive)', () => {
+        const status = HttpStatus.BAD_REQUEST;
+
+        it.each([
+          ['number', 42],
+          ['boolean true', true],
+          ['boolean false', false],
+          ['null', null],
+          ['array', ['a', 'b']],
+        ])(
+          'should not crash and ignore %s payload in error',
+          (_label, value) => {
+            const errorObj = { message: 'oops', error: value as never };
+
+            const expectation: IProblemDetail = {
+              title: 'oops',
+              status,
+              type: 'bad-request',
+            };
+
+            expect(() =>
+              filter.catch(
+                new HttpException(errorObj, status),
+                mockArgumentsHost,
+              ),
+            ).not.toThrow();
+
+            assertResponse(status, expectation);
+          },
+        );
       });
 
       it('should map custom fields from error object into response body', () => {
@@ -234,7 +283,7 @@ describe('HttpExceptionFilter', () => {
         providers: [
           {
             provide: HttpAdapterHost,
-            useValue: mockHttpAdatperHost,
+            useValue: mockHttpAdapterHost,
           },
           {
             provide: HTTP_ERRORS_MAP_KEY,
@@ -267,7 +316,7 @@ describe('HttpExceptionFilter', () => {
         title: errorObject.message,
         status,
         type: 'http://fcmam5.me/problems/some-problem-detail',
-        instance: errorObject.error.instance,
+        instance: errorObject.error?.instance,
       };
 
       filter.catch(new HttpException(errorObject, status), mockArgumentsHost);
@@ -295,7 +344,7 @@ describe('HttpExceptionFilter', () => {
 
   describe('when used outside a module', () => {
     beforeAll(() => {
-      filter = new HttpExceptionFilter(mockHttpAdatperHost as HttpAdapterHost);
+      filter = new HttpExceptionFilter(mockHttpAdapterHost as HttpAdapterHost);
     });
 
     it('should map default exception when thrown with not parameters', () => {
@@ -316,12 +365,12 @@ describe('HttpExceptionFilter', () => {
     expectedStatus: number,
     expectedJson: IProblemDetail,
   ) {
-    expect(mockHttpAdatperHost.httpAdapter.setHeader).toHaveBeenCalledWith(
+    expect(mockHttpAdapterHost.httpAdapter.setHeader).toHaveBeenCalledWith(
       mockGetResponse(),
       'Content-Type',
       PROBLEM_CONTENT_TYPE,
     );
-    expect(mockHttpAdatperHost.httpAdapter.reply).toHaveBeenCalledWith(
+    expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
       mockGetResponse(),
       expectedJson,
       expectedStatus,

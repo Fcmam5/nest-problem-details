@@ -13,4 +13,5 @@ export {
 export {
   IProblemDetail,
   IErrorDetail,
+  IExceptionResponse,
 } from './filters/http-exception.interface';
