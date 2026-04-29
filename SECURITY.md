@@ -10,7 +10,7 @@ The following versions of `nest-problem-details-filter` are currently supported 
 
 ## Reporting a Vulnerability
 
-We take the security of `nest-http-problem-details` seriously. If you believe you have found a security vulnerability, please follow the guidelines below.
+We take the security of `nest-problem-details` seriously. If you believe you have found a security vulnerability, please follow the guidelines below.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
@@ -50,4 +50,4 @@ When using `nest-problem-details-filter` in your application:
 
 ## Acknowledgments
 
-We thank the security researchers and community members who help keep `nest-http-problem-details` and its users safe by reporting vulnerabilities responsibly.
+We thank the security researchers and community members who help keep `nest-problem-details` and its users safe by reporting vulnerabilities responsibly.

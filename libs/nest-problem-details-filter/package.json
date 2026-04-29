@@ -10,13 +10,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Fcmam5/nest-http-problem-details.git"
+    "url": "git+https://github.com/Fcmam5/nest-problem-details.git"
   },
   "author": "Abdeldjalil Fortas (Fcmam5)",
   "bugs": {
-    "url": "https://github.com/Fcmam5/nest-http-problem-details/issues"
+    "url": "https://github.com/Fcmam5/nest-problem-details/issues"
   },
-  "homepage": "https://github.com/Fcmam5/nest-http-problem-details#readme",
+  "homepage": "https://github.com/Fcmam5/nest-problem-details#readme",
   "keywords": [
     "nestjs",
     "nest",
