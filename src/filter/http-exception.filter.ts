@@ -99,11 +99,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   private resolveType(type: string | undefined, status: number): string {
     const resolved = type ?? this.getDefaultType(status);
-    // Per RFC 9457 §4.2.1, the default "about:blank" type MUST NOT be prefixed.
-    if (resolved === DEFAULT_PROBLEM_TYPE) {
-      return DEFAULT_PROBLEM_TYPE;
+    if (!this.baseUri) return resolved;
+    try {
+      // RFC 3986 reference resolution via WHATWG URL:
+      //  - absolute references (`https://…`, `urn:…`, `about:blank`) ignore
+      //    the base — satisfying RFC 9457 §4.2.1 ("about:blank" stays bare).
+      //  - relative references join cleanly without producing `//`.
+      // Trailing slash on base ensures its path is treated as a directory
+      // rather than a file (so `/problems` + `errors/foo` doesn't drop
+      // `problems`).
+      const base = this.baseUri.endsWith('/')
+        ? this.baseUri
+        : `${this.baseUri}/`;
+      return new URL(resolved, base).toString();
+    } catch {
+      // Invalid baseUri or unparseable type — fall back to the raw value.
+      return resolved;
     }
-    return [this.baseUri, resolved].filter(Boolean).join('/');
   }
 
   private getDefaultType(status: number): string {
