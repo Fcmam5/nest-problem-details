@@ -5,7 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { HttpAdapterHost } from '@nestjs/core';
-import { HttpExceptionFilter } from '../src/filters/http-exception.filter';
+import { HttpExceptionFilter } from '../src';
 import { TestAppModule, TestAppModuleWithModule } from './test-app.module';
 import { runIntegrationTests } from './integration-tests.suite';
 

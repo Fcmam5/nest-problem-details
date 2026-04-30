@@ -14,7 +14,8 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
-import { IExceptionResponse } from './http-exception.interface';
+import { IExceptionResponse } from './interfaces';
+import { formatRetryAfter } from '../exception/retry-after';
 import { isErrorObject } from './type-guards';
 
 @Catch(HttpException)
@@ -73,7 +74,27 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
 
     httpAdapter.setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE);
+    this.applyRetryAfter(response, exception);
     httpAdapter.reply(response, responseBody, status);
+  }
+
+  /**
+   * Set `Retry-After` per RFC 9110 §10.2.3 when the caught exception
+   * exposes a `retryAfter` instance property (e.g. `ProblemDetailsException`
+   * with `retryAfter` set, or any custom `HttpException` subclass attaching
+   * the same field). Invalid values (negative seconds, non-finite numbers,
+   * invalid Date, blank strings) are skipped silently.
+   */
+  private applyRetryAfter(response: unknown, exception: HttpException): void {
+    const value = (exception as { retryAfter?: unknown }).retryAfter;
+    const formatted = formatRetryAfter(value);
+    if (formatted === undefined) return;
+
+    this.httpAdapterHost.httpAdapter.setHeader(
+      response,
+      'Retry-After',
+      formatted,
+    );
   }
 
   private resolveType(type: string | undefined, status: number): string {

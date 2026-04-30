@@ -3,7 +3,7 @@ import {
   BASE_PROBLEMS_URI,
   HTTP_ERRORS_MAP,
   HTTP_EXCEPTION_FILTER,
-} from './filters/http-exception.providers';
+} from './filter/providers';
 
 const providers = [BASE_PROBLEMS_URI, HTTP_ERRORS_MAP, HTTP_EXCEPTION_FILTER];
 

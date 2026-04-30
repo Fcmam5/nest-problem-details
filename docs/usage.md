@@ -135,6 +135,86 @@ throw new HttpException(
 
 Both forms produce identical responses; prefer `ProblemDetailsException` for new code.
 
+## Retry-After header
+
+[RFC 9457 §4](https://datatracker.ietf.org/doc/html/rfc9457#section-4) permits problem types to specify the `Retry-After` response header (defined in [RFC 9110 §10.2.3](https://datatracker.ietf.org/doc/html/rfc9110#section-10.2.3)). Common cases are `503 Service Unavailable` (maintenance / backpressure) and `429 Too Many Requests` (rate limiting, per [RFC 6585](https://datatracker.ietf.org/doc/html/rfc6585#section-4)). The library imposes no status restriction — set `retryAfter` on any error response where indicating a retry delay is appropriate.
+
+`ProblemDetailsException` accepts an optional `retryAfter` field. The filter sets the `Retry-After` HTTP header and **strips the value from the JSON body** — `Retry-After` is header semantics, not problem-detail body semantics.
+
+Three input forms are accepted:
+
+| Type     | Meaning                                    | On-wire format                                |
+|----------|--------------------------------------------|-----------------------------------------------|
+| `number` | Non-negative delta-seconds                 | Integer string; fractional values rounded up  |
+| `Date`   | Absolute retry instant                     | IMF-fixdate via `Date.toUTCString()`          |
+| `string` | Caller-formatted, passed through unchanged | Whatever you supply (must be non-blank)       |
+
+```ts
+// Rate limiting — delta-seconds:
+throw new ProblemDetailsException({
+  type: 'rate-limit-exceeded',
+  title: 'Too Many Requests',
+  status: 429,
+  detail: 'Quota exceeded.',
+  retryAfter: 3600,
+});
+```
+
+Produces:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/problem+json; charset=utf-8
+Retry-After: 3600
+
+{
+  "type": "rate-limit-exceeded",
+  "title": "Too Many Requests",
+  "status": 429,
+  "detail": "Quota exceeded."
+}
+```
+
+```ts
+// Scheduled maintenance — absolute date:
+throw new ProblemDetailsException({
+  type: 'service-maintenance',
+  title: 'Service Unavailable',
+  status: 503,
+  detail: 'Maintenance window in progress.',
+  retryAfter: new Date('2026-04-30T06:00:00Z'),
+});
+// → Retry-After: Thu, 30 Apr 2026 06:00:00 GMT
+```
+
+Invalid values (negative seconds, non-finite numbers, invalid `Date`) are silently dropped — no header is emitted rather than a malformed one.
+
+> **Note**: `retryAfter` lives on the exception instance, not the JSON body. The filter reads it via `exception.retryAfter`, so any custom `HttpException` subclass that exposes the same field will also produce the header.
+
+### With Nest's native exceptions
+
+The duck-typed read means you can extend any built-in Nest exception (`ServiceUnavailableException`, `HttpException`, etc.) and expose `retryAfter` as an instance property — no need to switch to `ProblemDetailsException`:
+
+```ts
+import { ServiceUnavailableException } from '@nestjs/common';
+import { RetryAfterValue } from 'nest-problem-details-filter';
+
+export class MaintenanceException extends ServiceUnavailableException {
+  constructor(
+    public readonly retryAfter: RetryAfterValue,
+    message = 'Maintenance window in progress.',
+  ) {
+    super(message);
+  }
+}
+
+// Usage:
+throw new MaintenanceException(300); // → Retry-After: 300
+throw new MaintenanceException(new Date('2026-04-30T06:00:00Z'));
+```
+
+The filter sets `Retry-After` from `exception.retryAfter` regardless of which `HttpException` subclass produced the exception.
+
 ## Example responses
 
 ### Default Nest `NotFoundException` handler

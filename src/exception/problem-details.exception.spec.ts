@@ -1,8 +1,8 @@
 import { HttpAdapterHost } from '@nestjs/core';
 import { HttpStatus } from '@nestjs/common';
-import { HttpExceptionFilter } from './http-exception.filter';
-import { IProblemDetail } from './http-exception.interface';
-import { PROBLEM_CONTENT_TYPE } from './constants';
+import { HttpExceptionFilter } from '../filter/http-exception.filter';
+import { IProblemDetail } from '../filter/interfaces';
+import { PROBLEM_CONTENT_TYPE } from '../filter/constants';
 import { ProblemDetailsException } from './problem-details.exception';
 
 const mockGetResponse = jest.fn().mockImplementation(() => ({}));
@@ -133,6 +133,22 @@ describe('ProblemDetailsException', () => {
         },
         HttpStatus.NOT_FOUND,
       );
+    });
+  });
+
+  describe('Retry-After header (RFC 9110 §10.2.3)', () => {
+    it('exposes retryAfter on the instance and strips it from the JSON body', () => {
+      const ex = new ProblemDetailsException({
+        status: HttpStatus.TOO_MANY_REQUESTS,
+        title: 'Too Many Requests',
+        retryAfter: 3600,
+      });
+
+      expect(ex.retryAfter).toBe(3600);
+      expect(ex.getResponse()).toEqual({
+        message: 'Too Many Requests',
+        error: {},
+      });
     });
   });
 });

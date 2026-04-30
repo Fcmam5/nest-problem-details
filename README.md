@@ -11,6 +11,7 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 ## Features
 
 - **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
+- **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
 - **Zero Dependencies** - No runtime dependencies
 - **TypeScript** - Full type support
 
@@ -135,7 +136,36 @@ throw new ProblemDetailsException({
 
 `type` is optional; when omitted, the filter resolves it from its status-to-type map (or falls back to `about:blank`, per RFC 9457 §4.2.1).
 
-See [`docs/usage.md`](./docs/usage.md) for the full set of examples (including the native `HttpException` form).
+#### `Retry-After` header
+
+Pass `retryAfter` as a number (delta-seconds), `Date` (absolute), or pre-formatted string on any retriable error response. The filter sets the `Retry-After` header per [RFC 9110 §10.2.3](https://datatracker.ietf.org/doc/html/rfc9110#section-10.2.3) and strips the value from the JSON body. Common cases are `429 Too Many Requests` (rate limiting) and `503 Service Unavailable` (maintenance / backpressure), but the library imposes no status restriction.
+
+```ts
+throw new ProblemDetailsException({
+  type: 'rate-limit-exceeded',
+  title: 'Too Many Requests',
+  status: 429,
+  detail: 'Quota exceeded.',
+  retryAfter: 3600, // → "Retry-After: 3600"
+});
+```
+
+The filter reads `retryAfter` from any `HttpException` instance (duck-typed), so you can extend Nest's built-in exceptions instead:
+
+```ts
+import { ServiceUnavailableException } from '@nestjs/common';
+import { RetryAfterValue } from 'nest-problem-details-filter';
+
+class MaintenanceException extends ServiceUnavailableException {
+  constructor(public readonly retryAfter: RetryAfterValue) {
+    super('Maintenance window in progress.');
+  }
+}
+
+throw new MaintenanceException(300); // → "Retry-After: 300"
+```
+
+See [`docs/usage.md`](./docs/usage.md) for the full set of examples (including the native `HttpException` form and `Retry-After` details).
 
 ### Example response
 

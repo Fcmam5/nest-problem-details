@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { HttpExceptionFilter } from './http-exception.filter';
-import { IErrorDetail, IProblemDetail } from './http-exception.interface';
+import { IErrorDetail, IProblemDetail } from './interfaces';
 import {
   HTTP_EXCEPTION_FILTER_KEY,
   HTTP_ERRORS_MAP_KEY,
@@ -358,6 +358,29 @@ describe('HttpExceptionFilter', () => {
       filter.catch(new BadRequestException(), mockArgumentsHost);
 
       assertResponse(status, expectation);
+    });
+  });
+
+  describe('Retry-After header (RFC 9110 §10.2.3)', () => {
+    beforeAll(() => {
+      filter = new HttpExceptionFilter(mockHttpAdapterHost as HttpAdapterHost);
+    });
+
+    it('sets Retry-After when any HttpException subclass exposes a retryAfter property (duck-typed)', () => {
+      class RateLimitException extends HttpException {
+        readonly retryAfter = 120;
+        constructor() {
+          super('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
+        }
+      }
+
+      filter.catch(new RateLimitException(), mockArgumentsHost);
+
+      expect(mockHttpAdapterHost.httpAdapter.setHeader).toHaveBeenCalledWith(
+        mockGetResponse(),
+        'Retry-After',
+        '120',
+      );
     });
   });
 
