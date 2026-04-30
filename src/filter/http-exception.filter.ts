@@ -14,8 +14,8 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
-import { IExceptionResponse } from './http-exception.interface';
-import { formatRetryAfter } from './retry-after';
+import { IExceptionResponse } from './interfaces';
+import { formatRetryAfter } from '../exception/retry-after';
 import { isErrorObject } from './type-guards';
 
 @Catch(HttpException)

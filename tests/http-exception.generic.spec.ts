@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { INestApplication } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { HttpExceptionFilter } from '../src/filters/http-exception.filter';
+import { HttpExceptionFilter } from '../src';
 import { TestAppModule, TestAppModuleWithModule } from './test-app.module';
 import { runIntegrationTests } from './integration-tests.suite';
 

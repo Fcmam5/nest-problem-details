@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { HttpExceptionFilter } from './http-exception.filter';
-import { IErrorDetail, IProblemDetail } from './http-exception.interface';
+import { IErrorDetail, IProblemDetail } from './interfaces';
 import {
   HTTP_EXCEPTION_FILTER_KEY,
   HTTP_ERRORS_MAP_KEY,

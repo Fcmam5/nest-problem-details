@@ -1,4 +1,4 @@
-import { IErrorDetail } from './http-exception.interface';
+import { IErrorDetail } from './interfaces';
 
 /**
  * Type guard for the structured `error` payload of an `IExceptionResponse`.

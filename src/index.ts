@@ -1,10 +1,10 @@
 export { NestProblemDetailsModule } from './nest-problem-details.module';
-export { HttpExceptionFilter } from './filters/http-exception.filter';
+export { HttpExceptionFilter } from './filter/http-exception.filter';
 export {
   ProblemDetailsException,
   ProblemDetailsInput,
-} from './filters/problem-details.exception';
-export { RetryAfterValue, formatRetryAfter } from './filters/retry-after';
+} from './exception/problem-details.exception';
+export { RetryAfterValue, formatRetryAfter } from './exception/retry-after';
 
 export {
   BASE_PROBLEMS_URI_KEY,
@@ -13,10 +13,10 @@ export {
   HTTP_EXCEPTION_FILTER_KEY,
   PROBLEM_CONTENT_TYPE,
   DEFAULT_PROBLEM_TYPE,
-} from './filters/constants';
+} from './filter/constants';
 
 export {
   IProblemDetail,
   IErrorDetail,
   IExceptionResponse,
-} from './filters/http-exception.interface';
+} from './filter/interfaces';
