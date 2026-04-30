@@ -361,6 +361,29 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  describe('Retry-After header (RFC 9110 §10.2.3)', () => {
+    beforeAll(() => {
+      filter = new HttpExceptionFilter(mockHttpAdapterHost as HttpAdapterHost);
+    });
+
+    it('sets Retry-After when any HttpException subclass exposes a retryAfter property (duck-typed)', () => {
+      class RateLimitException extends HttpException {
+        readonly retryAfter = 120;
+        constructor() {
+          super('Too Many Requests', HttpStatus.TOO_MANY_REQUESTS);
+        }
+      }
+
+      filter.catch(new RateLimitException(), mockArgumentsHost);
+
+      expect(mockHttpAdapterHost.httpAdapter.setHeader).toHaveBeenCalledWith(
+        mockGetResponse(),
+        'Retry-After',
+        '120',
+      );
+    });
+  });
+
   function assertResponse(
     expectedStatus: number,
     expectedJson: IProblemDetail,

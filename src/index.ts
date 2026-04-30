@@ -4,6 +4,7 @@ export {
   ProblemDetailsException,
   ProblemDetailsInput,
 } from './filters/problem-details.exception';
+export { RetryAfterValue, formatRetryAfter } from './filters/retry-after';
 
 export {
   BASE_PROBLEMS_URI_KEY,

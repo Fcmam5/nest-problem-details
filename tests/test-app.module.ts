@@ -8,9 +8,17 @@ import {
   NotFoundException,
   Param,
   Query,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { NestProblemDetailsModule, HTTP_EXCEPTION_FILTER_KEY } from '../src';
+import {
+  NestProblemDetailsModule,
+  HTTP_EXCEPTION_FILTER_KEY,
+  ProblemDetailsException,
+} from '../src';
+
+// Fixed instant used by Retry-After Date integration test.
+export const MAINTENANCE_RETRY_AT = new Date('2026-04-30T06:00:00Z');
 
 @Controller('api/test')
 export class TestController {
@@ -88,6 +96,69 @@ export class TestController {
       },
       403,
     );
+  }
+
+  @Get('rate-limited')
+  rateLimited(): void {
+    throw new ProblemDetailsException({
+      type: 'rate-limit-exceeded',
+      title: 'Too Many Requests',
+      status: 429,
+      detail: 'Quota exceeded.',
+      retryAfter: 60,
+    });
+  }
+
+  @Get('maintenance')
+  maintenance(): void {
+    throw new ProblemDetailsException({
+      type: 'service-maintenance',
+      title: 'Service Unavailable',
+      status: 503,
+      detail: 'Maintenance window in progress.',
+      retryAfter: MAINTENANCE_RETRY_AT,
+    });
+  }
+
+  @Get('rate-limited-no-retry')
+  rateLimitedNoRetry(): void {
+    throw new ProblemDetailsException({
+      type: 'rate-limit-exceeded',
+      title: 'Too Many Requests',
+      status: 429,
+    });
+  }
+
+  @Get('native-rate-limited')
+  nativeRateLimited(): void {
+    // Native HttpException subclass exposing `retryAfter` as an instance
+    // property — picked up by the filter via duck typing, no coupling to
+    // ProblemDetailsException.
+    class RateLimitException extends HttpException {
+      readonly retryAfter = 90;
+      constructor() {
+        super(
+          {
+            message: 'Too Many Requests',
+            error: { type: 'rate-limit-exceeded', detail: 'Slow down.' },
+          },
+          429,
+        );
+      }
+    }
+    throw new RateLimitException();
+  }
+
+  @Get('native-maintenance')
+  nativeMaintenance(): void {
+    // Subclass of Nest's `ServiceUnavailableException` (which itself extends
+    // `HttpException`) that exposes a `retryAfter` instance property.
+    class MaintenanceException extends ServiceUnavailableException {
+      constructor(public readonly retryAfter: number) {
+        super('Maintenance window in progress.');
+      }
+    }
+    throw new MaintenanceException(300);
   }
 }
 

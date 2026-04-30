@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { INestApplication } from '@nestjs/common';
+import { MAINTENANCE_RETRY_AT } from './test-app.module';
 
 export function runIntegrationTests(
   description: string,
@@ -136,6 +137,84 @@ export function runIntegrationTests(
         instance: '/account/12345/msgs/abc',
         balance: 30,
         accounts: ['/account/12345', '/account/67890'],
+      });
+    });
+
+    describe('Retry-After header (RFC 9110 §10.2.3)', () => {
+      it('sets Retry-After: <seconds> for 429 with numeric retryAfter', async () => {
+        const response = await request(getServer(app))
+          .get('/api/test/rate-limited')
+          .expect(429);
+
+        expect(response.headers['retry-after']).toBe('60');
+        expect(response.body).toEqual({
+          type: 'rate-limit-exceeded',
+          title: 'Too Many Requests',
+          status: 429,
+          detail: 'Quota exceeded.',
+        });
+        // retryAfter must NOT leak into the JSON body.
+        expect(response.body).not.toHaveProperty('retryAfter');
+      });
+
+      it('sets Retry-After: <IMF-fixdate> for 503 with Date retryAfter', async () => {
+        const response = await request(getServer(app))
+          .get('/api/test/maintenance')
+          .expect(503);
+
+        expect(response.headers['retry-after']).toBe(
+          MAINTENANCE_RETRY_AT.toUTCString(),
+        );
+        expect(response.body).toEqual({
+          type: 'service-maintenance',
+          title: 'Service Unavailable',
+          status: 503,
+          detail: 'Maintenance window in progress.',
+        });
+        expect(response.body).not.toHaveProperty('retryAfter');
+      });
+
+      it('omits Retry-After when retryAfter is not provided', async () => {
+        const response = await request(getServer(app))
+          .get('/api/test/rate-limited-no-retry')
+          .expect(429);
+
+        expect(response.headers['retry-after']).toBeUndefined();
+        expect(response.body).toEqual({
+          type: 'rate-limit-exceeded',
+          title: 'Too Many Requests',
+          status: 429,
+        });
+      });
+
+      it('sets Retry-After for a native HttpException subclass exposing retryAfter (duck-typed)', async () => {
+        const response = await request(getServer(app))
+          .get('/api/test/native-rate-limited')
+          .expect(429);
+
+        expect(response.headers['retry-after']).toBe('90');
+        expect(response.body).toEqual({
+          type: 'rate-limit-exceeded',
+          title: 'Too Many Requests',
+          status: 429,
+          detail: 'Slow down.',
+        });
+        expect(response.body).not.toHaveProperty('retryAfter');
+      });
+
+      it('sets Retry-After for a Nest ServiceUnavailableException subclass exposing retryAfter', async () => {
+        const response = await request(getServer(app))
+          .get('/api/test/native-maintenance')
+          .expect(503);
+
+        expect(response.headers['retry-after']).toBe('300');
+        expect(response.body).toEqual({
+          type: 'service-unavailable',
+          title: 'Maintenance window in progress.',
+          status: 503,
+          detail: 'Service Unavailable',
+        });
+        expect(response.body).not.toHaveProperty('retryAfter');
       });
     });
   });

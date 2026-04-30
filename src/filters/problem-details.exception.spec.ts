@@ -135,4 +135,20 @@ describe('ProblemDetailsException', () => {
       );
     });
   });
+
+  describe('Retry-After header (RFC 9110 §10.2.3)', () => {
+    it('exposes retryAfter on the instance and strips it from the JSON body', () => {
+      const ex = new ProblemDetailsException({
+        status: HttpStatus.TOO_MANY_REQUESTS,
+        title: 'Too Many Requests',
+        retryAfter: 3600,
+      });
+
+      expect(ex.retryAfter).toBe(3600);
+      expect(ex.getResponse()).toEqual({
+        message: 'Too Many Requests',
+        error: {},
+      });
+    });
+  });
 });
