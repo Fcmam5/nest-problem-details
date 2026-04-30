@@ -11,7 +11,7 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 ## Features
 
 - **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
-- **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException`
+- **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
 - **Zero Dependencies** - No runtime dependencies
 - **TypeScript** - Full type support
 
