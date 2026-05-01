@@ -79,6 +79,21 @@ describe('resolveProblemUri', () => {
     ).toBe('https://example.com/custom');
   });
 
+  it('clears query and hash from baseUri so they do not corrupt path resolution', () => {
+    expect(
+      resolveProblemUri(
+        'not-found',
+        'https://api.example.com/problems?x=1#frag',
+      ),
+    ).toBe('https://api.example.com/problems/not-found');
+  });
+
+  it('ignores hash-fragment paths (e.g. Angular-style routing)', () => {
+    expect(
+      resolveProblemUri('not-found', 'https://api.example.com/app/#/problems'),
+    ).toBe('https://api.example.com/app/not-found');
+  });
+
   it('falls back to raw type on invalid baseUri', () => {
     expect(resolveProblemUri('not-found', 'not a url')).toBe('not-found');
   });

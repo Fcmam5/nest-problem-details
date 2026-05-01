@@ -57,8 +57,13 @@ export function resolveProblemType(
 export function resolveProblemUri(type: string, baseUri?: string): string {
   if (!baseUri) return type;
   try {
-    const base = baseUri.endsWith('/') ? baseUri : `${baseUri}/`;
-    return new URL(type, base).toString();
+    const baseUrl = new URL(baseUri);
+    baseUrl.search = '';
+    baseUrl.hash = '';
+    if (!baseUrl.pathname.endsWith('/')) {
+      baseUrl.pathname += '/';
+    }
+    return new URL(type, baseUrl.href).toString();
   } catch {
     return type;
   }
