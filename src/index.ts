@@ -20,3 +20,9 @@ export {
   IErrorDetail,
   IExceptionResponse,
 } from './filter/interfaces';
+
+export {
+  resolveProblemTitle,
+  resolveProblemType,
+  resolveProblemUri,
+} from './resolvers';

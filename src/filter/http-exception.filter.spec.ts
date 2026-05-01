@@ -361,6 +361,91 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  describe('type URI normalization (RFC 9457 §3.1.1)', () => {
+    function makeFilter(baseUri: string): HttpExceptionFilter {
+      return new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        baseUri,
+      );
+    }
+
+    function caughtType(f: HttpExceptionFilter, ex: HttpException): string {
+      f.catch(ex, mockArgumentsHost);
+      const replyMock = mockHttpAdapterHost.httpAdapter.reply as jest.Mock;
+      const calls = replyMock.mock.calls;
+      const lastBody = calls[calls.length - 1]?.[1] as IProblemDetail;
+      return lastBody.type as string;
+    }
+
+    it('passes absolute http(s) URI through without prefixing baseUri', () => {
+      const ex = new HttpException(
+        {
+          message: 'Bad',
+          error: { type: 'https://docs.example.com/errors/foo' },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+      expect(caughtType(makeFilter('https://api.example.com'), ex)).toBe(
+        'https://docs.example.com/errors/foo',
+      );
+    });
+
+    it('passes other URI schemes (e.g. urn:) through unprefixed', () => {
+      const ex = new HttpException(
+        { message: 'Bad', error: { type: 'urn:problems:rate-limit' } },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+      expect(caughtType(makeFilter('https://api.example.com'), ex)).toBe(
+        'urn:problems:rate-limit',
+      );
+    });
+
+    it('keeps about:blank bare even when baseUri is set (RFC 9457 §4.2.1)', () => {
+      // 452 has no mapping → falls back to about:blank.
+      const ex = new HttpException('Custom', 452);
+      expect(caughtType(makeFilter('https://api.example.com'), ex)).toBe(
+        'about:blank',
+      );
+    });
+
+    it('does not produce a double slash with trailing-slashed baseUri', () => {
+      const ex = new HttpException(
+        { message: 'Bad', error: { type: 'errors/foo' } },
+        HttpStatus.BAD_REQUEST,
+      );
+      expect(caughtType(makeFilter('https://api.example.com/'), ex)).toBe(
+        'https://api.example.com/errors/foo',
+      );
+    });
+
+    it('does not produce a double slash with leading-slashed type', () => {
+      const ex = new HttpException(
+        { message: 'Bad', error: { type: '/errors/foo' } },
+        HttpStatus.BAD_REQUEST,
+      );
+      expect(caughtType(makeFilter('https://api.example.com'), ex)).toBe(
+        'https://api.example.com/errors/foo',
+      );
+    });
+
+    it('returns relative type as-is when baseUri is empty', () => {
+      const ex = new HttpException(
+        { message: 'Bad', error: { type: 'errors/foo' } },
+        HttpStatus.BAD_REQUEST,
+      );
+      expect(caughtType(makeFilter(''), ex)).toBe('errors/foo');
+    });
+
+    it('falls back to raw type when baseUri is unparseable as a URL', () => {
+      const ex = new HttpException(
+        { message: 'Bad', error: { type: 'errors/foo' } },
+        HttpStatus.BAD_REQUEST,
+      );
+      // `:::` has no valid scheme — URL constructor throws.
+      expect(caughtType(makeFilter(':::'), ex)).toBe('errors/foo');
+    });
+  });
+
   describe('Retry-After header (RFC 9110 §10.2.3)', () => {
     beforeAll(() => {
       filter = new HttpExceptionFilter(mockHttpAdapterHost as HttpAdapterHost);

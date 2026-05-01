@@ -6,17 +6,20 @@ import {
   Inject,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { STATUS_CODES } from 'http';
 import {
   BASE_PROBLEMS_URI_KEY,
   DEFAULT_HTTP_ERRORS,
-  DEFAULT_PROBLEM_TYPE,
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
 } from './constants';
 import { IExceptionResponse } from './interfaces';
 import { formatRetryAfter } from '../exception/retry-after';
 import { isErrorObject } from './type-guards';
+import {
+  resolveProblemTitle,
+  resolveProblemType,
+  resolveProblemUri,
+} from '../resolvers';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -68,7 +71,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const responseBody = {
       ...objectExtras,
       type: this.resolveType(type, status),
-      title: title ?? STATUS_CODES[status] ?? 'Error',
+      title: resolveProblemTitle(title, status),
       status,
       detail,
     };
@@ -98,15 +101,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private resolveType(type: string | undefined, status: number): string {
-    const resolved = type ?? this.getDefaultType(status);
-    // Per RFC 9457 §4.2.1, the default "about:blank" type MUST NOT be prefixed.
-    if (resolved === DEFAULT_PROBLEM_TYPE) {
-      return DEFAULT_PROBLEM_TYPE;
-    }
-    return [this.baseUri, resolved].filter(Boolean).join('/');
-  }
-
-  private getDefaultType(status: number): string {
-    return this.defaultHttpErrors[status] ?? DEFAULT_PROBLEM_TYPE;
+    const resolved = resolveProblemType(type, status, this.defaultHttpErrors);
+    return resolveProblemUri(resolved, this.baseUri);
   }
 }

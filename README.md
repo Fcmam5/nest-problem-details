@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/nest-problem-details-filter)](https://www.npmjs.com/package/nest-problem-details-filter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Main pipeline](https://github.com/Fcmam5/nest-problem-details/actions/workflows/main.yml/badge.svg)](https://github.com/Fcmam5/nest-problem-details/actions/workflows/main.yml) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Fcmam5/nest-problem-details?utm_source=oss&utm_medium=github&utm_campaign=Fcmam5%2Fnest-problem-details&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+[![Main pipeline](https://github.com/Fcmam5/nest-problem-details/actions/workflows/main.yml/badge.svg)](https://github.com/Fcmam5/nest-problem-details/actions/workflows/main.yml) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Fcmam5/nest-problem-details?utm_source=oss&utm_medium=github&utm_campaign=Fcmam5%2Fnest-problem-details&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews) [![Coverage Status](https://coveralls.io/repos/github/Fcmam5/nest-problem-details/badge.svg?branch=develop)](https://coveralls.io/github/Fcmam5/nest-problem-details?branch=develop)
 
 Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (formerly [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807))-compliant **Problem Details for HTTP APIs**.
 
@@ -12,8 +12,9 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 
 - **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
 - **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
-- **Zero Dependencies** - No runtime dependencies
-- **TypeScript** - Full type support
+- **Swagger / OpenAPI decorator (optional)** - `@ApiProblemResponse()` via `nest-problem-details-filter/swagger` subpath auto-documents `application/problem+json` without forcing `@nestjs/swagger` on users who don't need it
+- **Docs / runtime alignment** - Shared resolvers guarantee OpenAPI examples match the wire format (status-to-type map, title fallbacks, base-URI resolution)
+- **Zero runtime dependencies** - Core filter has no runtime dependencies
 
 <!-- omit from toc --> 
 ## Table of contents:
@@ -23,10 +24,12 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
   - [Usage](#usage)
     - [As a global filter](#as-a-global-filter)
     - [As a module](#as-a-module)
-  - [Throwing exceptions](#throwing-exceptions)
-  - [Example response](#example-response)
-  - [OpenAPI schema](#openapi-schema)
-  - [Documentation](#documentation)
+    - [Throwing exceptions](#throwing-exceptions)
+      - [`Retry-After` header](#retry-after-header)
+    - [Swagger / OpenAPI](#swagger--openapi)
+    - [Example response](#example-response)
+    - [OpenAPI schema](#openapi-schema)
+    - [Documentation](#documentation)
   - [Integration tests](#integration-tests)
   - [Resources](#resources)
   - [Contributing](#contributing)
@@ -166,6 +169,46 @@ throw new MaintenanceException(300); // → "Retry-After: 300"
 ```
 
 See [`docs/usage.md`](./docs/usage.md) for the full set of examples (including the native `HttpException` form and `Retry-After` details).
+
+### Swagger / OpenAPI
+
+If you use `@nestjs/swagger`, import `@ApiProblemResponse` from the `nest-problem-details-filter/swagger` subpath to document `application/problem+json` responses:
+
+```ts
+import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
+
+@Controller('dragons')
+export class DragonsController {
+  @Get(':id')
+  @ApiProblemResponse({ status: 404, type: 'not-found', title: 'Dragon not found' })
+  @ApiProblemResponse({ status: 429, type: 'rate-limit-exceeded', retryAfter: 3600 })
+  findOne(@Param('id') id: string) { ... }
+}
+```
+
+The decorator is **stackable**: apply once per status code. It auto-generates:
+
+- The canonical `ProblemDetails` schema under `content['application/problem+json']`
+- A response example with `type`, `title`, and `status`
+- The `Retry-After` header schema when `retryAfter` is provided
+
+If your filter is configured with a `BASE_PROBLEMS_URI`, pass the same value as `baseUri` so the OpenAPI docs match the runtime wire format:
+
+```ts
+@ApiProblemResponse({ status: 404, type: 'not-found', baseUri: 'https://api.example.com/problems' })
+// OpenAPI example type → "https://api.example.com/problems/not-found"
+```
+
+Likewise, if you override the default status-to-type map via `HTTP_ERRORS_MAP_KEY`, pass the same map as `httpErrors`:
+
+```ts
+@ApiProblemResponse({ status: 404, httpErrors: { 404: 'missing-resource' } })
+// OpenAPI example type → "missing-resource" (not the built-in default)
+```
+
+See [`docs/usage.md`](./docs/usage.md) for the full decorator API (custom schemas, explicit `examples`, `headers`, etc.).
+
+> **Preview**: copy [`tests/fixtures/swagger-document.json`](./tests/fixtures/swagger-document.json) and paste it into [editor.swagger.io](https://editor.swagger.io) to see how the decorator renders in Swagger UI.
 
 ### Example response
 
