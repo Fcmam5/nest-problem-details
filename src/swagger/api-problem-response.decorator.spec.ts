@@ -128,7 +128,7 @@ describe('ApiProblemResponse', () => {
       });
     });
 
-    it('documents Retry-After as a date-time string for a Date value', () => {
+    it('documents Retry-After as an IMF-fixdate string for a Date value', () => {
       class Ctrl {
         @ApiProblemResponse({
           status: 503,
@@ -138,8 +138,9 @@ describe('ApiProblemResponse', () => {
       }
       expect(getResponses(Ctrl.prototype, 'handler')['503'].headers).toEqual({
         'Retry-After': {
-          description: 'Date and time when the client may retry the request.',
-          schema: { type: 'string', format: 'date-time' },
+          description:
+            "IMF-fixdate (RFC 7231 §7.1.1.1) when the client may retry, e.g. 'Wed, 21 Oct 2026 07:28:00 GMT'.",
+          schema: { type: 'string' },
         },
       });
     });

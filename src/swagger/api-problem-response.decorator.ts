@@ -116,8 +116,9 @@ function buildRetryAfterHeader(value: RetryAfterValue): HeaderObject {
   }
   if (value instanceof Date) {
     return {
-      description: 'Date and time when the client may retry the request.',
-      schema: { type: 'string', format: 'date-time' },
+      description:
+        "IMF-fixdate (RFC 7231 §7.1.1.1) when the client may retry, e.g. 'Wed, 21 Oct 2026 07:28:00 GMT'.",
+      schema: { type: 'string' },
     };
   }
   return {
