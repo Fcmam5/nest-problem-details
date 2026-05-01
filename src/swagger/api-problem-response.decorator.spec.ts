@@ -332,6 +332,42 @@ describe('ApiProblemResponse', () => {
     });
   });
 
+  describe('httpErrors override', () => {
+    class Ctrl {
+      @ApiProblemResponse({
+        status: 404,
+        httpErrors: { 404: 'missing-resource' },
+      })
+      handler() {}
+    }
+
+    it('looks up the default type from the custom map instead of built-in defaults', () => {
+      const media = getResponses(Ctrl.prototype, 'handler')['404'].content![
+        PROBLEM_CONTENT_TYPE
+      ];
+      expect(media.example).toMatchObject({
+        type: 'missing-resource',
+        status: 404,
+      });
+    });
+
+    it('still falls back to about:blank for unmapped status codes', () => {
+      class CtrlUnmapped {
+        @ApiProblemResponse({
+          status: 599,
+          httpErrors: { 404: 'missing-resource' },
+        })
+        handler() {}
+      }
+      const media = getResponses(CtrlUnmapped.prototype, 'handler')['599']
+        .content![PROBLEM_CONTENT_TYPE];
+      expect(media.example).toMatchObject({
+        type: 'about:blank',
+        status: 599,
+      });
+    });
+  });
+
   describe('unknown status', () => {
     class Ctrl {
       @ApiProblemResponse({ status: 599 })

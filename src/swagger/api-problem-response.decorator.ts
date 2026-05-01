@@ -82,12 +82,21 @@ export interface ApiProblemResponseOptions {
    * reference resolution.
    */
   baseUri?: string;
+  /**
+   * Custom status-to-type map, matching the `HTTP_ERRORS_MAP_KEY` configured
+   * on {@link HttpExceptionFilter}. When provided, default `type` values for
+   * unhandled status codes are looked up from this map instead of the built-in
+   * defaults, keeping the documented example aligned with the runtime filter.
+   *
+   * Pass the same value you inject into the filter.
+   */
+  httpErrors?: Record<number, string>;
 }
 
 function buildExample(options: ApiProblemResponseOptions): IProblemDetail {
   const example: IProblemDetail = {
     type: resolveProblemUri(
-      resolveProblemType(options.type, options.status),
+      resolveProblemType(options.type, options.status, options.httpErrors),
       options.baseUri,
     ),
     title: resolveProblemTitle(options.title, options.status),

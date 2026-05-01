@@ -199,6 +199,13 @@ If your filter is configured with a `BASE_PROBLEMS_URI`, pass the same value as 
 // OpenAPI example type → "https://api.example.com/problems/not-found"
 ```
 
+Likewise, if you override the default status-to-type map via `HTTP_ERRORS_MAP_KEY`, pass the same map as `httpErrors`:
+
+```ts
+@ApiProblemResponse({ status: 404, httpErrors: { 404: 'missing-resource' } })
+// OpenAPI example type → "missing-resource" (not the built-in default)
+```
+
 See [`docs/usage.md`](./docs/usage.md) for the full decorator API (custom schemas, explicit `examples`, `headers`, etc.).
 
 > **Preview**: copy [`tests/fixtures/swagger-document.json`](./tests/fixtures/swagger-document.json) and paste it into [editor.swagger.io](https://editor.swagger.io) to see how the decorator renders in Swagger UI.
