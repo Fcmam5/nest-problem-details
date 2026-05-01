@@ -50,6 +50,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"{src,tests}/**/*.ts\" --fix",
     "lint:fix": "npm run lint -- --fix",
+    "start:mock": "node --watch -r ts-node/register tests/mock-main.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
