@@ -30,7 +30,11 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
     - [Example response](#example-response)
     - [OpenAPI schema](#openapi-schema)
     - [Documentation](#documentation)
-  - [Integration tests](#integration-tests)
+  - [Development](#development)
+    - [Tests](#tests)
+    - [Mock app](#mock-app)
+    - [Lint \& format](#lint--format)
+    - [Build](#build)
   - [Resources](#resources)
   - [Contributing](#contributing)
   - [Security](#security)
@@ -294,11 +298,49 @@ components:
 
 Check the [`docs/`](./docs/) folder for usage examples and the [OpenAPI schema](./docs/openapi.md).
 
-## Integration tests
+## Development
 
-The library includes reusable integration tests that run against real NestJS applications backed by Express and Fastify to verify that the problem-details filter works correctly with each HTTP adapter. Tests are defined once in a shared suite and executed per platform.
+### Tests
 
-See the test files under [`tests/`](./tests/) for details.
+The library includes reusable integration tests that run against real NestJS applications backed by **Express** and **Fastify** to verify that the filter works correctly with each HTTP adapter.
+
+```bash
+# Run all tests (unit + integration)
+npm test
+
+# Watch mode
+npm run test:watch
+
+# With coverage
+npm run test:cov
+```
+
+### Mock app
+
+A local NestJS server is available for manual testing and exploring the Swagger / OpenAPI output. It reuses the same controllers as the integration tests, decorated with `@ApiProblemResponse` so the generated spec includes `application/problem+json` response examples.
+
+```bash
+# Start the mock app (reuses the same controllers as the integration tests)
+npm run start:mock
+```
+
+- API endpoints: `http://localhost:3000/api/test/...`
+- Swagger UI: `http://localhost:3000/api`
+
+The mock app automatically restarts when you edit `tests/mock-main.ts` or `tests/test-app.module.ts`.
+
+### Lint & format
+
+```bash
+npm run lint        # ESLint with auto-fix
+npm run format      # Prettier (src/**/*.ts)
+```
+
+### Build
+
+```bash
+npm run build       # Compiles src/ → dist/ via nest build
+```
 
 ## Resources
 

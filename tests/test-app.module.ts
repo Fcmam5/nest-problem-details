@@ -16,6 +16,7 @@ import {
   HTTP_EXCEPTION_FILTER_KEY,
   ProblemDetailsException,
 } from '../src';
+import { ApiProblemResponse } from '../src/swagger';
 
 // Fixed instant used by Retry-After Date integration test.
 export const MAINTENANCE_RETRY_AT = new Date('2026-04-30T06:00:00Z');
@@ -23,16 +24,28 @@ export const MAINTENANCE_RETRY_AT = new Date('2026-04-30T06:00:00Z');
 @Controller('api/test')
 export class TestController {
   @Get('default-not-found')
+  @ApiProblemResponse({ status: 404, type: 'not-found', title: 'Not Found' })
   defaultNotFound(): void {
     throw new NotFoundException();
   }
 
   @Get('custom-title')
+  @ApiProblemResponse({
+    status: 404,
+    type: 'not-found',
+    title: 'Dragon not found',
+  })
   customTitle(): void {
     throw new NotFoundException('Dragon not found');
   }
 
   @Get('custom-title-detail')
+  @ApiProblemResponse({
+    status: 404,
+    type: 'not-found',
+    title: 'Dragon not found',
+    detail: 'Could not find any dragon with ID: 99',
+  })
   customTitleAndDetail(): void {
     throw new NotFoundException(
       'Dragon not found',
@@ -54,11 +67,21 @@ export class TestController {
   }
 
   @Get('bad-request')
+  @ApiProblemResponse({
+    status: 400,
+    type: 'bad-request',
+    title: 'Bad Request',
+  })
   badRequest(): void {
     throw new BadRequestException();
   }
 
   @Get('forbidden')
+  @ApiProblemResponse({
+    status: 403,
+    type: 'forbidden',
+    title: 'you shall not pass!',
+  })
   forbidden(): void {
     throw new ForbiddenException('you shall not pass!');
   }
@@ -82,6 +105,13 @@ export class TestController {
   }
 
   @Get('business-error')
+  @ApiProblemResponse({
+    status: 403,
+    type: 'out-of-credit',
+    title: 'You do not have enough credit.',
+    detail: 'Your current balance is 30, but that costs 50.',
+    instance: '/account/12345/msgs/abc',
+  })
   businessError(): void {
     throw new HttpException(
       {
@@ -99,6 +129,13 @@ export class TestController {
   }
 
   @Get('rate-limited')
+  @ApiProblemResponse({
+    status: 429,
+    type: 'rate-limit-exceeded',
+    title: 'Too Many Requests',
+    detail: 'Quota exceeded.',
+    retryAfter: 60,
+  })
   rateLimited(): void {
     throw new ProblemDetailsException({
       type: 'rate-limit-exceeded',
