@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TestAppModuleWithModule } from './test-app.module';
+import { addProblemDetailsSchema } from '../src/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(TestAppModuleWithModule);
@@ -10,6 +11,8 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
+  addProblemDetailsSchema(document);
+
   SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);

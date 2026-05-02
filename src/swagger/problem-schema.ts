@@ -66,39 +66,12 @@ export const PROBLEM_DETAILS_SCHEMA: SchemaObject = {
         'Optional API-specific error code (extension member, not part of ' +
         'RFC 9457).',
     },
-    'invalid-params': {
-      type: 'array',
-      maxItems: 1000,
-      description:
-        'Array of validation errors per the RFC 9457 §3 canonical example. ' +
-        'Preferred extension member for validation failures.',
-      items: {
-        type: 'object',
-        required: ['name', 'reason'],
-        additionalProperties: true,
-        properties: {
-          name: {
-            type: 'string',
-            maxLength: 1024,
-            description:
-              'Name of the parameter (body property, query/path parameter, or header).',
-          },
-          reason: {
-            type: 'string',
-            maxLength: 4096,
-            description:
-              'Human-readable reason the parameter failed validation.',
-          },
-        },
-      },
-    },
     errors: {
       type: 'array',
       maxItems: 1000,
       description:
-        'Alternative SmartBear-style array of granular error details. Use ' +
-        '`invalid-params` for validation; this member is accepted but not ' +
-        'preferred.',
+        'Array of granular error details. Accepted as an ' +
+        'extension member but not emitted by this library.',
       items: {
         type: 'object',
         required: ['detail'],

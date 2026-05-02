@@ -2,11 +2,10 @@
 
 `ProblemDetails` object as defined by [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (formerly [RFC 7807](https://tools.ietf.org/html/rfc7807)). Returned with `Content-Type: application/problem+json`.
 
-The library always emits `type`, `title`, and `status`. `detail`, `instance` and any extension members (RFC 9457 §3.2) are conditional. The schema below documents three optional extension members:
+The library always emits `type`, `title`, and `status`. `detail`, `instance` and any extension members (RFC 9457 §3.2) are conditional. The schema below documents two optional extension members:
 
-- **`invalid-params`** — RFC 9457 §3 canonical example shape `{ name, reason }`. **Preferred** for validation errors. Will be emitted by the planned `class-validator` integration.
-- **`code`** — API-specific error code (SmartBear convention).
-- **`errors`** — richer alternative to `invalid-params` with `{ detail, pointer, parameter, header, code }` (SmartBear convention). Accepted but not preferred.
+- **`code`** — API-specific error code (vendor extension).
+- **`errors`** — Array of granular error details with `{ detail, pointer, parameter, header, code }`. Accepted but not emitted by the library.
 
 None of these are emitted by the library out of the box.
 
@@ -53,15 +52,9 @@ None of these are emitted by the library out of the box.
       "description": "Optional API-specific error code (extension member, not part of RFC 9457).",
       "maxLength": 50
     },
-    "invalid-params": {
-      "type": "array",
-      "description": "Array of validation errors per the RFC 9457 §3 canonical example. Preferred extension member for validation failures.",
-      "maxItems": 1000,
-      "items": { "$ref": "#/$defs/InvalidParam" }
-    },
     "errors": {
       "type": "array",
-      "description": "Alternative SmartBear-style array of granular error details. Use `invalid-params` for validation; this member is accepted but not preferred.",
+      "description": "Array of granular error details. Accepted as an extension member but not emitted by this library.",
       "maxItems": 1000,
       "items": { "$ref": "#/$defs/ErrorDetail" }
     }
@@ -69,16 +62,6 @@ None of these are emitted by the library out of the box.
   "required": ["type", "title", "status"],
   "additionalProperties": true,
   "$defs": {
-    "InvalidParam": {
-      "type": "object",
-      "description": "A single validation failure per RFC 9457 §3 example.",
-      "properties": {
-        "name":   { "type": "string", "maxLength": 1024, "description": "Name of the parameter (body property, query/path parameter, or header)." },
-        "reason": { "type": "string", "maxLength": 4096, "description": "Human-readable reason the parameter failed validation." }
-      },
-      "required": ["name", "reason"],
-      "additionalProperties": true
-    },
     "ErrorDetail": {
       "type": "object",
       "description": "Granular detail for a single problem cause.",
@@ -164,43 +147,15 @@ components:
           description: >
             Optional API-specific error code (extension member, not part of
             RFC 9457).
-        invalid-params:
-          type: array
-          maxItems: 1000
-          description: >
-            Array of validation errors per the RFC 9457 §3 canonical example.
-            Preferred extension member for validation failures.
-          items:
-            $ref: '#/components/schemas/InvalidParam'
         errors:
           type: array
           maxItems: 1000
           description: >
-            Alternative SmartBear-style array of granular error details. Use
-            `invalid-params` for validation; this member is accepted but not
-            preferred.
+            Array of granular error details. Accepted as an
+            extension member but not emitted by this library.
           items:
             $ref: '#/components/schemas/ErrorDetail'
       additionalProperties: true
-
-    InvalidParam:
-      type: object
-      description: A single validation failure per RFC 9457 §3 example.
-      required:
-        - name
-        - reason
-      additionalProperties: true
-      properties:
-        name:
-          type: string
-          maxLength: 1024
-          description: Name of the parameter (body property, query/path parameter, or header).
-          example: 'age'
-        reason:
-          type: string
-          maxLength: 4096
-          description: Human-readable reason the parameter failed validation.
-          example: 'must be a positive integer'
 
     ErrorDetail:
       type: object
@@ -240,6 +195,15 @@ import { ApiProblemResponse } from 'nest-problem-details-filter/swagger';
 
 It emits `content: { 'application/problem+json': { schema: ProblemDetails, example } }` and supports `retryAfter` (auto-documents the `Retry-After` header), `baseUri` (resolves relative types into absolute URIs to match the runtime filter), and explicit `schema` / `examples` overrides.
 
+If you want a named model in Swagger UI, register it after document generation:
+
+```ts
+import { addProblemDetailsSchema } from 'nest-problem-details-filter/swagger';
+
+const document = SwaggerModule.createDocument(app, builder);
+addProblemDetailsSchema(document);
+```
+
 See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_URI` alignment notes.
 
 > **Preview**: [`tests/fixtures/swagger-document.json`](../tests/fixtures/swagger-document.json) is a committed OpenAPI 3.0 JSON generated by the decorator's integration test — copy it into [editor.swagger.io](https://editor.swagger.io) to see how the schema renders.
@@ -248,7 +212,7 @@ See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_
 
 - All members are technically optional in RFC 9457. This schema marks `type`, `title`, and `status` as required because the library always emits them.
 - `type` uses `format: uri-reference` (not `uri`) because RFC 9457 explicitly allows relative references; the library emits values like `not-found` when no base URI is configured, plus `about:blank` and absolute URIs.
-- **Validation errors**: this library prefers `invalid-params` (the RFC 9457 §3 canonical example shape `{ name, reason }`) over the SmartBear `errors` shape, for maximum interoperability with Spring Boot, .NET, and other RFC-9457 consumers. The SmartBear `errors` and `code` members are accepted as extension members but are **not preferred** and will not be emitted by the planned `class-validator` integration.
+- **Validation errors**: the schema accepts the `errors` extension member, but the library does not emit it by default (`invalid-params` appeared only in an RFC 7807 example and was not standardised in RFC 9457).
 - The `Content-Type` response header is `application/problem+json`. RFC 9457 §6.2 also registers `application/problem+xml`; this library emits **only JSON**.
 - `title` MAY be localized via the HTTP `Content-Language` response header (RFC 9457 §3.1). This library does not localize.
 - `maxLength` / `maxItems` constraints in this schema are pragmatic hardening limits and are **not** mandated by RFC 9457.
@@ -257,5 +221,4 @@ See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_
 
 - [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457) (obsoletes RFC 7807)
 - [Swagger blog: Problem Details (RFC 9457) API error handling](https://swagger.io/blog/problem-details-rfc9457-api-error-handling/)
-- [SmartBear Problems Registry](https://problems-registry.smartbear.com/)
 

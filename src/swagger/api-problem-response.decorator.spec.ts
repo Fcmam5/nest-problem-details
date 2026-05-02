@@ -231,7 +231,7 @@ describe('ApiProblemResponse', () => {
   describe('schema override', () => {
     const customSchema = {
       type: 'object' as const,
-      required: ['type', 'title', 'status', 'invalid-params'],
+      required: ['type', 'title', 'status', 'errors'],
       properties: { foo: { type: 'string' as const } },
     };
 
@@ -259,7 +259,7 @@ describe('ApiProblemResponse', () => {
               type: 'validation-failed',
               title: 'Unprocessable Entity',
               status: 422,
-              'invalid-params': [{ name: 'name', reason: 'is required' }],
+              errors: [{ detail: 'name is required' }],
             },
           },
         },

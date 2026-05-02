@@ -261,6 +261,19 @@ The decorator is stackable: apply once per status code you want documented. It a
 - A response example with `type`, `title`, and `status`
 - The `Retry-After` header schema when `retryAfter` is provided
 
+### Registering a named `ProblemDetails` model
+
+By default the decorator inlines the schema in every response so it works out of the box. If you want a named `ProblemDetails` entry to appear in Swagger UI's **Schemas** section, call `addProblemDetailsSchema()` after creating the document:
+
+```ts
+import { addProblemDetailsSchema } from 'nest-problem-details-filter/swagger';
+
+const document = SwaggerModule.createDocument(app, builder);
+addProblemDetailsSchema(document);
+```
+
+This registers `ProblemDetails` under `components.schemas` so Swagger UI shows it as a reusable model.
+
 ### Aligning with `BASE_PROBLEMS_URI`
 
 If your filter is configured with a `BASE_PROBLEMS_URI`, pass the same value as `baseUri` so the documented example matches the wire format:

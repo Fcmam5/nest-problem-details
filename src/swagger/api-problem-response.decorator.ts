@@ -53,7 +53,7 @@ export interface ApiProblemResponseOptions {
   /**
    * Override the entire response schema. Use when you have a stricter, more
    * specific shape than the canonical Problem Details schema (for example, a
-   * subclass that always carries `invalid-params`).
+   * subclass that always carries `errors`).
    */
   schema?: SchemaObject & Partial<ReferenceObject>;
   /**
