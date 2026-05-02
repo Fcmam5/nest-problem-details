@@ -215,6 +215,15 @@ Likewise, if you override the default status-to-type map via `HTTP_ERRORS_MAP_KE
 // OpenAPI example type → "missing-resource" (not the built-in default)
 ```
 
+By default the decorator inlines the schema in every response so it works out of the box. If you want a named `ProblemDetails` entry in Swagger UI's **Schemas** section, call `addProblemDetailsSchema()` after creating the document:
+
+```ts
+import { addProblemDetailsSchema } from 'nest-problem-details-filter/swagger';
+
+const document = SwaggerModule.createDocument(app, builder);
+addProblemDetailsSchema(document);
+```
+
 See [`docs/usage.md`](./docs/usage.md) for the full decorator API (custom schemas, explicit `examples`, `headers`, etc.).
 
 > **Preview**: copy [`tests/fixtures/swagger-document.json`](./tests/fixtures/swagger-document.json) and paste it into [editor.swagger.io](https://editor.swagger.io) to see how the decorator renders in Swagger UI.

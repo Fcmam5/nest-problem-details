@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import request from 'supertest';
 
 import { HttpExceptionFilter, ProblemDetailsException } from '../src';
-import { ApiProblemResponse } from '../src/swagger';
+import { addProblemDetailsSchema, ApiProblemResponse } from '../src/swagger';
 
 @Controller('dragons')
 class SwaggerTestController {
@@ -75,6 +75,7 @@ describe('Swagger/OpenAPI integration', () => {
       .build();
 
     const document = SwaggerModule.createDocument(app, builder);
+    addProblemDetailsSchema(document);
 
     // Strip volatile / environment-specific fields so the fixture stays
     // reproducible across Node versions and CI runs.
@@ -114,6 +115,7 @@ describe('Swagger/OpenAPI integration', () => {
         wireApp,
         new DocumentBuilder().setTitle('Test API').setVersion('1.0').build(),
       );
+      addProblemDetailsSchema(document);
 
       const documentedExample = (
         document.paths['/dragons/{id}'].get!.responses['404'] as {
