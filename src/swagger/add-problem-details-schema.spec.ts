@@ -5,7 +5,11 @@ import { PROBLEM_DETAILS_SCHEMA } from './problem-schema';
 
 describe('addProblemDetailsSchema', () => {
   it('adds ProblemDetails to an empty components object', () => {
-    const document: OpenAPIObject = { openapi: '3.0.0', paths: {}, info: { title: '', version: '' } };
+    const document: OpenAPIObject = {
+      openapi: '3.0.0',
+      paths: {},
+      info: { title: '', version: '' },
+    };
 
     addProblemDetailsSchema(document);
 
@@ -31,7 +35,11 @@ describe('addProblemDetailsSchema', () => {
   });
 
   it('is idempotent — repeated calls do not throw', () => {
-    const document: OpenAPIObject = { openapi: '3.0.0', paths: {}, info: { title: '', version: '' } };
+    const document: OpenAPIObject = {
+      openapi: '3.0.0',
+      paths: {},
+      info: { title: '', version: '' },
+    };
 
     addProblemDetailsSchema(document);
     addProblemDetailsSchema(document);

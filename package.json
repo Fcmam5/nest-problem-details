@@ -51,7 +51,8 @@
   "scripts": {
     "build": "rm -f tsconfig.build.tsbuildinfo && nest build",
     "prepublishOnly": "rm -rf dist && npm run build",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "format:check": "prettier --check \"{src,tests}/**/*.ts\"",
     "lint": "eslint \"{src,tests}/**/*.ts\" --fix",
     "lint:fix": "npm run lint -- --fix",
     "start:mock": "node --watch -r ts-node/register tests/mock-main.ts",

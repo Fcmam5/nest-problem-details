@@ -35,6 +35,7 @@ jobs:
           restore-keys: ${{ runner.os }}-npm-
 
       - run: npm install
+      - run: npm run format:check
       - run: npm run lint
       - run: npm test
       - run: npm run build
