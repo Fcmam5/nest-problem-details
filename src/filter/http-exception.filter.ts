@@ -43,21 +43,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
       | IExceptionResponse;
 
     let title: string | undefined;
-    let detail;
+    let detail: string | undefined;
     let type: string | undefined;
-    let objectExtras;
+    let objectExtras: Record<string, unknown> | undefined;
+    let errors: unknown;
 
     if (typeof errorResponse === 'string') {
       title = errorResponse;
     } else {
-      // TODO #26: `errorResponse.message` may be `string[]` when Nest's
-      // ValidationPipe is used, which produces a non-string `title` and
-      // violates the RFC 9457 schema. The planned fix keeps `title` as the
-      // status reason phrase and moves the array to the `invalid-params`
-      // extension member (RFC 9457 §3 canonical example). See TODO.md #6
-      // and #13 (`class-validator` mapper, gh#23). Until then, callers must
-      // ensure `message` is a string.
-      title = errorResponse.message;
+      const message = errorResponse.message;
+
+      if (Array.isArray(message) && message.length > 0) {
+        // Approach 1: Nest's default ValidationPipe emits a flat string[].
+        // Per RFC 9457 §3.1.4 consumers SHOULD NOT parse `detail` for
+        // information — put the array in `errors` instead.
+        title = undefined; // resolves to HTTP status reason phrase
+        errors = message;
+      } else if (typeof message === 'string') {
+        title = message;
+      }
+
       if (typeof errorResponse.error === 'string') {
         detail = errorResponse.error;
       } else if (isErrorObject(errorResponse.error)) {
@@ -66,15 +71,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
         detail = _detail;
         objectExtras = rest;
       }
+
+      // Approaches 2 & 3: caller supplied a structured `errors` value
+      // (Record<string,string[]> field-map or RFC pointer array). Pass through.
+      if (errorResponse.errors !== undefined) {
+        errors = errorResponse.errors;
+      }
     }
 
-    const responseBody = {
+    const responseBody: Record<string, unknown> = {
       ...objectExtras,
       type: this.resolveType(type, status),
       title: resolveProblemTitle(title, status),
       status,
       detail,
     };
+
+    if (errors !== undefined) {
+      responseBody['errors'] = errors;
+    }
 
     httpAdapter.setHeader(response, 'Content-Type', PROBLEM_CONTENT_TYPE);
     this.applyRetryAfter(response, exception);

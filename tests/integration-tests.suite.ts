@@ -140,6 +140,168 @@ export function runIntegrationTests(
       });
     });
 
+    describe('Validation errors', () => {
+      const invalidBody = {
+        username: 'a',
+        email: 'not-an-email',
+        address: { street: '', city: '' },
+      };
+
+      const adminBody = {
+        username: 'admin',
+        email: 'admin@example.com',
+        address: { street: '1 Main St', city: 'Paris' },
+      };
+
+      describe('Approach 1 — default ValidationPipe (flat string[] → errors array)', () => {
+        it('returns a flat errors string[] for invalid body', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/default')
+            .send(invalidBody)
+            .expect(400);
+
+          expect(response.body.type).toBe('bad-request');
+          expect(response.body.title).toBe('Bad Request');
+          expect(response.body.status).toBe(400);
+          expect(Array.isArray(response.body.errors)).toBe(true);
+          expect(response.body.errors.length).toBeGreaterThan(0);
+          response.body.errors.forEach((e: unknown) =>
+            expect(typeof e).toBe('string'),
+          );
+        });
+
+        it('returns errors containing nested field messages', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/default')
+            .send(invalidBody)
+            .expect(400);
+
+          const msgs: string[] = response.body.errors;
+          expect(msgs.some((m) => m.includes('email'))).toBe(true);
+          expect(
+            msgs.some(
+              (m) =>
+                m.includes('street') ||
+                m.includes('city') ||
+                m.includes('address'),
+            ),
+          ).toBe(true);
+        });
+
+        it('fires the custom IsNotReservedUsername validator', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/default')
+            .send(adminBody)
+            .expect(400);
+
+          const msgs: string[] = response.body.errors;
+          expect(msgs.some((m) => m.includes('reserved'))).toBe(true);
+        });
+      });
+
+      describe('Approach 2 — BadRequestException + exceptionFactory', () => {
+        it('returns a field-map errors object', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/bad-request-factory')
+            .send(invalidBody)
+            .expect(400);
+
+          expect(response.body.type).toBe('bad-request');
+          expect(response.body.title).toBe('Validation failed');
+          expect(response.body.status).toBe(400);
+          expect(response.body.errors).toBeDefined();
+          expect(typeof response.body.errors).toBe('object');
+          expect(Array.isArray(response.body.errors)).toBe(false);
+        });
+
+        it('groups messages by field name including nested dotted paths', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/bad-request-factory')
+            .send(invalidBody)
+            .expect(400);
+
+          const errors: Record<string, string[]> = response.body.errors;
+          expect(errors['email']).toBeDefined();
+          expect(Array.isArray(errors['email'])).toBe(true);
+          expect(
+            errors['address.street'] ?? errors['address.city'],
+          ).toBeDefined();
+        });
+
+        it('includes custom validator error under correct field key', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/bad-request-factory')
+            .send(adminBody)
+            .expect(400);
+
+          const errors: Record<string, string[]> = response.body.errors;
+          expect(errors['username']).toBeDefined();
+          expect(errors['username'].some((m) => m.includes('reserved'))).toBe(
+            true,
+          );
+        });
+      });
+
+      describe('Approach 3A — ProblemDetailsException + field-map', () => {
+        it('returns type validation-error with field-map errors', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/problem-details-field-map')
+            .send(invalidBody)
+            .expect(400);
+
+          expect(response.body.type).toBe('validation-error');
+          expect(response.body.title).toBe('Validation Failed');
+          expect(response.body.status).toBe(400);
+          expect(typeof response.body.errors).toBe('object');
+          expect(Array.isArray(response.body.errors)).toBe(false);
+        });
+
+        it('groups by field including nested dotted paths', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/problem-details-field-map')
+            .send(invalidBody)
+            .expect(400);
+
+          const errors: Record<string, string[]> = response.body.errors;
+          expect(errors['email']).toBeDefined();
+          expect(
+            errors['address.street'] ?? errors['address.city'],
+          ).toBeDefined();
+        });
+      });
+
+      describe('Approach 3B — ProblemDetailsException + RFC 9457 JSON Pointer array', () => {
+        it('returns an array with detail and pointer for each violation', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/problem-details-json-pointer')
+            .send(invalidBody)
+            .expect(400);
+
+          expect(response.body.type).toBe('validation-error');
+          expect(response.body.title).toBe('Validation Failed');
+          expect(response.body.status).toBe(400);
+          expect(Array.isArray(response.body.errors)).toBe(true);
+          response.body.errors.forEach((e: unknown) => {
+            expect(e).toHaveProperty('detail');
+            expect(e).toHaveProperty('pointer');
+          });
+        });
+
+        it('pointer values use JSON Pointer format (#/field)', async () => {
+          const response = await request(getServer(app))
+            .post('/api/test/validation/problem-details-json-pointer')
+            .send(invalidBody)
+            .expect(400);
+
+          const pointers: string[] = response.body.errors.map(
+            (e: { pointer: string }) => e.pointer,
+          );
+          expect(pointers.some((p) => p.startsWith('#/'))).toBe(true);
+          expect(pointers.some((p) => p === '#/email')).toBe(true);
+        });
+      });
+    });
+
     describe('Retry-After header (RFC 9110 §10.2.3)', () => {
       it('sets Retry-After: <seconds> for 429 with numeric retryAfter', async () => {
         const response = await request(getServer(app))

@@ -1,5 +1,29 @@
 # Usage Documentation
 
+- [Usage Documentation](#usage-documentation)
+  - [As a global filter](#as-a-global-filter)
+  - [As a module](#as-a-module)
+  - [Throwing exceptions](#throwing-exceptions)
+    - [Recommended: `ProblemDetailsException`](#recommended-problemdetailsexception)
+      - [Optional `type`](#optional-type)
+    - [Alternative: native `HttpException`](#alternative-native-httpexception)
+  - [Retry-After header](#retry-after-header)
+    - [With Nest's native exceptions](#with-nests-native-exceptions)
+  - [Swagger / OpenAPI](#swagger--openapi)
+    - [Aligning with `BASE_PROBLEMS_URI`](#aligning-with-base_problems_uri)
+    - [Aligning with `HTTP_ERRORS_MAP_KEY`](#aligning-with-http_errors_map_key)
+  - [Example responses](#example-responses)
+    - [Default Nest `NotFoundException` handler](#default-nest-notfoundexception-handler)
+    - [Throwing a `HttpException` with no parameters](#throwing-a-httpexception-with-no-parameters)
+    - [Throwing a `HttpException` with a title](#throwing-a-httpexception-with-a-title)
+    - [Throwing a `HttpException` with a title and description](#throwing-a-httpexception-with-a-title-and-description)
+  - [Validation error handling](#validation-error-handling)
+    - [Approach 1 — Zero config (default `ValidationPipe`)](#approach-1--zero-config-default-validationpipe)
+    - [Approach 2 — `BadRequestException` with `exceptionFactory`](#approach-2--badrequestexception-with-exceptionfactory)
+    - [Approach 3A — `ProblemDetailsException` with field-map (shorthand)](#approach-3a--problemdetailsexception-with-field-map-shorthand)
+    - [Approach 3B — `ProblemDetailsException` with RFC 9457 JSON Pointer array](#approach-3b--problemdetailsexception-with-rfc-9457-json-pointer-array)
+    - [Exported helpers summary](#exported-helpers-summary)
+
 ## As a global filter
 
 In `main.ts` add `app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)))` as the following:
@@ -143,11 +167,11 @@ Both forms produce identical responses; prefer `ProblemDetailsException` for new
 
 Three input forms are accepted:
 
-| Type     | Meaning                                    | On-wire format                                |
-|----------|--------------------------------------------|-----------------------------------------------|
-| `number` | Non-negative delta-seconds                 | Integer string; fractional values rounded up  |
-| `Date`   | Absolute retry instant                     | IMF-fixdate via `Date.toUTCString()`          |
-| `string` | Caller-formatted, passed through unchanged | Whatever you supply (must be non-blank)       |
+| Type     | Meaning                                    | On-wire format                               |
+| -------- | ------------------------------------------ | -------------------------------------------- |
+| `number` | Non-negative delta-seconds                 | Integer string; fractional values rounded up |
+| `Date`   | Absolute retry instant                     | IMF-fixdate via `Date.toUTCString()`         |
+| `string` | Caller-formatted, passed through unchanged | Whatever you supply (must be non-blank)      |
 
 ```ts
 // Rate limiting — delta-seconds:
@@ -355,3 +379,177 @@ Content-Type: application/problem+json; charset=utf-8
   "detail": "Could not find any dragon with ID: 99"
 }
 ```
+
+---
+
+## Validation error handling
+
+The library supports three approaches for surfacing `class-validator` errors. Choose the one that fits your use case.
+
+> **Peer dependency:** these helpers require `class-validator` (already a NestJS validation standard). Install it alongside the filter:
+> ```bash
+> npm install class-validator
+> ```
+
+> **Why `errors` and not `detail`?**
+> RFC 9457 §3.1.4 states: _"Consumers SHOULD NOT parse the `detail` member for information; extensions are more suitable and less error-prone ways to obtain such information."_
+> All three approaches use the `errors` extension member, not `detail`.
+
+> **Why not `invalid-params`?**
+> `invalid-params` appeared only in an RFC 7807 example and was not standardised in RFC 9457. Avoid it.
+
+---
+
+### Approach 1 — Zero config (default `ValidationPipe`)
+
+Register `HttpExceptionFilter` as usual. When Nest's default `ValidationPipe` rejects a request it throws `BadRequestException` with `message: string[]`. The filter detects this and moves the array into the `errors` extension — **no extra configuration needed**.
+
+```ts
+// main.ts
+app.useGlobalPipes(new ValidationPipe());
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
+```
+
+```json
+{
+  "type": "bad-request",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Bad Request",
+  "errors": [
+    "username must be longer than or equal to 3 characters",
+    "email must be an email",
+    "address.street should not be empty"
+  ]
+}
+```
+
+Messages are flat (no field grouping) because Nest's default pipe does not expose field keys in its output.
+
+---
+
+### Approach 2 — `BadRequestException` with `exceptionFactory`
+
+Use `mapClassValidatorErrors()` inside `exceptionFactory` to group messages by field name, then throw Nest's built-in `BadRequestException`. The filter picks up the `errors` object and passes it through.
+
+```ts
+import { mapClassValidatorErrors } from 'nest-problem-details-filter/class-validator-mappers';
+
+app.useGlobalPipes(
+  new ValidationPipe({
+    exceptionFactory: (validationErrors) =>
+      new BadRequestException({
+        message: 'Validation failed',
+        errors: mapClassValidatorErrors(validationErrors),
+      }),
+  }),
+);
+```
+
+```json
+{
+  "type": "bad-request",
+  "title": "Validation failed",
+  "status": 400,
+  "errors": {
+    "username": ["must be longer than or equal to 3 characters"],
+    "email": ["must be an email"],
+    "address.street": ["should not be empty"],
+    "address.city": ["should not be empty"]
+  }
+}
+```
+
+Nested objects are flattened with dotted-path keys (e.g. `address.street`). Custom validator messages appear under the correct field key just like built-in constraints.
+
+---
+
+### Approach 3A — `ProblemDetailsException` with field-map (shorthand)
+
+Use `toValidationProblemDetails()` for the shortest possible factory. It wraps `mapClassValidatorErrors()` and builds a fully-formed `ProblemDetailsException` in one call.
+
+```ts
+import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator-mappers';
+
+app.useGlobalPipes(
+  new ValidationPipe({
+    exceptionFactory: (e) => toValidationProblemDetails(e),
+  }),
+);
+```
+
+```json
+{
+  "type": "validation-error",
+  "title": "Validation Failed",
+  "status": 400,
+  "errors": {
+    "username": ["must be longer than or equal to 3 characters"],
+    "address.city": ["should not be empty"]
+  }
+}
+```
+
+You can override the defaults:
+
+```ts
+exceptionFactory: (e) =>
+  toValidationProblemDetails(e, {
+    status: 422,
+    title: 'Unprocessable Entity',
+    type: 'unprocessable-entity',
+  })
+```
+
+---
+
+### Approach 3B — `ProblemDetailsException` with RFC 9457 JSON Pointer array
+
+Pass `{ usePointers: true }` to `toValidationProblemDetails()` to get strict RFC 9457 compliance. Each violation becomes a `{ detail, pointer }` object where `pointer` is a JSON Pointer (`#/field` or `#/nested/field`).
+
+```ts
+import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator-mappers';
+
+app.useGlobalPipes(
+  new ValidationPipe({
+    exceptionFactory: (e) => toValidationProblemDetails(e, { usePointers: true }),
+  }),
+);
+```
+
+```json
+{
+  "type": "validation-error",
+  "title": "Validation Failed",
+  "status": 400,
+  "errors": [
+    { "detail": "must be longer than or equal to 3 characters", "pointer": "#/username" },
+    { "detail": "must be an email", "pointer": "#/email" },
+    { "detail": "should not be empty", "pointer": "#/address/street" }
+  ]
+}
+```
+
+You can also build the pointer array manually via `mapToPointerErrors()` if you need custom filtering or sorting:
+
+```ts
+import { mapToPointerErrors, ProblemDetailsException } from 'nest-problem-details-filter/class-validator-mappers';
+
+exceptionFactory: (validationErrors) =>
+  new ProblemDetailsException({
+    status: 400,
+    title: 'Validation Failed',
+    type: 'validation-error',
+    errors: mapToPointerErrors(validationErrors),
+  })
+```
+
+---
+
+### Exported helpers summary
+
+| Export                                         | Returns                    | Use case                                                                        |
+| ---------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------- |
+| `mapClassValidatorErrors(errors)`              | `Record<string, string[]>` | Build a field-map to pass to `BadRequestException` or `ProblemDetailsException` |
+| `mapToPointerErrors(errors)`                   | `PointerError[]`           | Build an RFC 9457 pointer array manually                                        |
+| `toValidationProblemDetails(errors, options?)` | `ProblemDetailsException`  | One-liner `exceptionFactory` for approaches 3A and 3B                           |

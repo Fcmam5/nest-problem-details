@@ -469,6 +469,107 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  describe('Validation error handling', () => {
+    const status = HttpStatus.BAD_REQUEST;
+
+    describe('Approach 1 — default ValidationPipe (string[] message)', () => {
+      it('puts message array into errors and resolves title from status', () => {
+        filter.catch(
+          new BadRequestException({
+            message: [
+              'email must be an email',
+              'name must be longer than or equal to 3 characters',
+            ],
+            error: 'Bad Request',
+            statusCode: status,
+          }),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, {
+          type: 'bad-request',
+          title: 'Bad Request',
+          status,
+          detail: 'Bad Request',
+          errors: [
+            'email must be an email',
+            'name must be longer than or equal to 3 characters',
+          ],
+        } as unknown as IProblemDetail);
+      });
+
+      it('omits errors when message array is empty', () => {
+        filter.catch(
+          new BadRequestException({
+            message: [],
+            error: 'Bad Request',
+            statusCode: status,
+          }),
+          mockArgumentsHost,
+        );
+
+        const call = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+          .calls[0][1];
+        expect(call).not.toHaveProperty('errors');
+      });
+    });
+
+    describe('Approach 2 — BadRequestException with explicit errors field-map', () => {
+      it('passes errors object through to response', () => {
+        filter.catch(
+          new BadRequestException({
+            message: 'Validation failed',
+            errors: {
+              email: ['must be an email'],
+              'address.city': ['should not be empty'],
+            },
+            statusCode: status,
+          }),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, {
+          type: 'bad-request',
+          title: 'Validation failed',
+          status,
+          errors: {
+            email: ['must be an email'],
+            'address.city': ['should not be empty'],
+          },
+        } as unknown as IProblemDetail);
+      });
+    });
+
+    describe('Approach 3B — RFC 9457 JSON Pointer array via ProblemDetailsException', () => {
+      it('passes errors pointer array through to response', () => {
+        filter.catch(
+          new HttpException(
+            {
+              message: 'Validation Failed',
+              errors: [
+                { detail: 'must be an email', pointer: '#/email' },
+                { detail: 'must be a positive integer', pointer: '#/age' },
+              ],
+              statusCode: status,
+            },
+            status,
+          ),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, {
+          type: 'bad-request',
+          title: 'Validation Failed',
+          status,
+          errors: [
+            { detail: 'must be an email', pointer: '#/email' },
+            { detail: 'must be a positive integer', pointer: '#/age' },
+          ],
+        } as unknown as IProblemDetail);
+      });
+    });
+  });
+
   function assertResponse(
     expectedStatus: number,
     expectedJson: IProblemDetail,
