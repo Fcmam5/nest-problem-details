@@ -212,7 +212,7 @@ See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_
 
 - All members are technically optional in RFC 9457. This schema marks `type`, `title`, and `status` as required because the library always emits them.
 - `type` uses `format: uri-reference` (not `uri`) because RFC 9457 explicitly allows relative references; the library emits values like `not-found` when no base URI is configured, plus `about:blank` and absolute URIs.
-- **Validation errors**: this library emits the `errors` extension member, not `invalid-params` (`invalid-params` appeared only in an RFC 7807 example and was not standardised in RFC 9457).
+- **Validation errors**: the schema accepts the `errors` extension member, but the library does not emit it by default (`invalid-params` appeared only in an RFC 7807 example and was not standardised in RFC 9457).
 - The `Content-Type` response header is `application/problem+json`. RFC 9457 §6.2 also registers `application/problem+xml`; this library emits **only JSON**.
 - `title` MAY be localized via the HTTP `Content-Language` response header (RFC 9457 §3.1). This library does not localize.
 - `maxLength` / `maxItems` constraints in this schema are pragmatic hardening limits and are **not** mandated by RFC 9457.
