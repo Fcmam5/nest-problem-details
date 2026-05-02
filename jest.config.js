@@ -13,6 +13,7 @@ module.exports = {
     'dist/',
     'src/index.ts',
     'src/swagger/index.ts',
+    'src/class-validator-mappers/index.ts',
   ],
   coverageThreshold: {
     global: { branches: 99, functions: 99, lines: 99, statements: 99 },

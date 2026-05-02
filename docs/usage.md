@@ -469,7 +469,7 @@ Nested objects are flattened with dotted-path keys (e.g. `address.street`). Cust
 Use `toValidationProblemDetails()` for the shortest possible factory. It wraps `mapClassValidatorErrors()` and builds a fully-formed `ProblemDetailsException` in one call.
 
 ```ts
-import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator';
+import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator-mappers';
 
 app.useGlobalPipes(
   new ValidationPipe({
@@ -508,7 +508,7 @@ exceptionFactory: (e) =>
 Pass `{ usePointers: true }` to `toValidationProblemDetails()` to get strict RFC 9457 compliance. Each violation becomes a `{ detail, pointer }` object where `pointer` is a JSON Pointer (`#/field` or `#/nested/field`).
 
 ```ts
-import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator';
+import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator-mappers';
 
 app.useGlobalPipes(
   new ValidationPipe({

@@ -359,7 +359,7 @@ new ValidationPipe({
 Use `toValidationProblemDetails()` for a one-liner that returns a `ProblemDetailsException` directly:
 
 ```ts
-import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator';
+import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator-mappers';
 
 // Field-map (default)
 new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e) })
