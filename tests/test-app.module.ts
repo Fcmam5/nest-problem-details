@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -7,8 +8,11 @@ import {
   Module,
   NotFoundException,
   Param,
+  Post,
   Query,
   ServiceUnavailableException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import {
@@ -16,7 +20,27 @@ import {
   HTTP_EXCEPTION_FILTER_KEY,
   ProblemDetailsException,
 } from '../src';
+import {
+  mapClassValidatorErrors,
+  toValidationProblemDetails,
+} from '../src/class-validator-mappers';
+import { CreateUserDto } from './dto/create-user.dto';
 import { ApiProblemResponse } from '../src/swagger';
+import { ApiBody } from '@nestjs/swagger';
+
+// Shared @ApiBody decorator for the CreateUserDto validation endpoints.
+const CreateUserDtoBodyExamples = ApiBody({
+  type: CreateUserDto,
+  examples: {
+    badDto: {
+      summary: 'Invalid username and email',
+      value: {
+        username: 'admin',
+        email: 'invalid-email',
+      },
+    },
+  },
+});
 
 // Fixed instant used by Retry-After Date integration test.
 export const MAINTENANCE_RETRY_AT = new Date('2026-04-30T06:00:00Z');
@@ -197,6 +221,70 @@ export class TestController {
     }
     throw new MaintenanceException(300);
   }
+
+  // Approach 1 — Zero config: default ValidationPipe emits string[].
+  // The filter puts the flat string[] in `errors`.
+  @Post('validation/default')
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  )
+  @CreateUserDtoBodyExamples
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validationDefault(@Body() _dto: CreateUserDto): void {
+    // Body is intentionally unused — we only care about the validation error.
+  }
+
+  // Approach 2 — Custom exceptionFactory with BadRequestException.
+  // Uses mapClassValidatorErrors to build a field-map and passes it via the
+  // standard BadRequestException so the filter picks up `errors`.
+  @Post('validation/bad-request-factory')
+  @CreateUserDtoBodyExamples
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      exceptionFactory: (validationErrors) => {
+        return new BadRequestException({
+          message: 'Validation failed',
+          errors: mapClassValidatorErrors(validationErrors),
+        });
+      },
+    }),
+  )
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validationBadRequestFactory(@Body() _dto: CreateUserDto): void {}
+
+  // Approach 3A — ProblemDetailsException with field-map errors.
+  // Uses toValidationProblemDetails() shorthand.
+  @Post('validation/problem-details-field-map')
+  @CreateUserDtoBodyExamples
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      exceptionFactory: (e) => toValidationProblemDetails(e),
+    }),
+  )
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validationProblemDetailsFieldMap(@Body() _dto: CreateUserDto): void {}
+
+  // Approach 3B — ProblemDetailsException with RFC 9457 JSON Pointer array.
+  // Uses toValidationProblemDetails({ usePointers: true }) shorthand.
+  @Post('validation/problem-details-json-pointer')
+  @CreateUserDtoBodyExamples
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      exceptionFactory: (e) =>
+        toValidationProblemDetails(e, { usePointers: true }),
+    }),
+  )
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validationProblemDetailsJsonPointer(@Body() _dto: CreateUserDto): void {}
 }
 
 @Module({

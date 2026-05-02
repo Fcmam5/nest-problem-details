@@ -13,6 +13,10 @@
     "./swagger": {
       "types": "./dist/swagger/index.d.ts",
       "default": "./dist/swagger/index.js"
+    },
+    "./class-validator-mappers": {
+      "types": "./dist/class-validator-mappers/index.d.ts",
+      "default": "./dist/class-validator-mappers/index.js"
     }
   },
   "files": [
@@ -67,6 +71,8 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^25.6.0",
     "@types/supertest": "^6.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -86,10 +92,14 @@
   "peerDependencies": {
     "@nestjs/common": "^9.0.0 || ^10.0.0 || ^11.0.0",
     "@nestjs/core": "^9.0.0 || ^10.0.0 || ^11.0.0",
-    "@nestjs/swagger": "^9.0.0 || ^10.0.0 || ^11.0.0"
+    "@nestjs/swagger": "^9.0.0 || ^10.0.0 || ^11.0.0",
+    "class-validator": "^0.14.0 || ^0.15.0"
   },
   "peerDependenciesMeta": {
     "@nestjs/swagger": {
+      "optional": true
+    },
+    "class-validator": {
       "optional": true
     }
   }

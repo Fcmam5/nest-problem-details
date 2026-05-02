@@ -14,6 +14,7 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 - **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
 - **Swagger / OpenAPI decorator (optional)** - `@ApiProblemResponse()` via `nest-problem-details-filter/swagger` subpath auto-documents `application/problem+json` without forcing `@nestjs/swagger` on users who don't need it
 - **Docs / runtime alignment** - Shared resolvers guarantee OpenAPI examples match the wire format (status-to-type map, title fallbacks, base-URI resolution)
+- **Flexible validation error handling** - Three approaches from zero-config to full RFC 9457 JSON Pointer compliance (see [Validation errors](#validation-errors))
 - **Zero runtime dependencies** - Core filter has no runtime dependencies
 
 <!-- omit from toc --> 
@@ -30,6 +31,10 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
     - [Example response](#example-response)
     - [OpenAPI schema](#openapi-schema)
     - [Documentation](#documentation)
+    - [Validation errors](#validation-errors)
+      - [Approach 1 — Zero config](#approach-1--zero-config)
+      - [Approach 2 — Field-map via `BadRequestException`](#approach-2--field-map-via-badrequestexception)
+      - [Approach 3 — `ProblemDetailsException` (field-map or RFC pointer array)](#approach-3--problemdetailsexception-field-map-or-rfc-pointer-array)
   - [Development](#development)
     - [Tests](#tests)
     - [Mock app](#mock-app)
@@ -297,6 +302,87 @@ components:
 ### Documentation
 
 Check the [`docs/`](./docs/) folder for usage examples and the [OpenAPI schema](./docs/openapi.md).
+
+### Validation errors
+
+The filter ships three flexible approaches for surfacing `class-validator` validation errors — all using the `errors` RFC 9457 extension member (not `detail`, per §3.1.4).
+
+> **Peer dependency:** the helpers below require `class-validator` (already a NestJS validation standard). Install it alongside the filter:
+> ```bash
+> npm install class-validator
+> ```
+
+#### Approach 1 — Zero config
+
+Just register `ValidationPipe` + `HttpExceptionFilter`. The filter detects the `string[]` message Nest emits and moves it to `errors` automatically ([why not using `details` as array?](./docs/usage.md#validation-error-handling)):
+
+```json
+{
+  "type": "bad-request",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Bad Request",
+  "errors": [
+    "username must be longer than or equal to 3 characters",
+    "email must be an email"
+  ]
+}
+```
+
+#### Approach 2 — Field-map via `BadRequestException`
+
+Use `mapClassValidatorErrors()` in `exceptionFactory` for per-field grouping with dotted-path nesting:
+
+```ts
+import { mapClassValidatorErrors } from 'nest-problem-details-filter/class-validator-mappers';
+
+new ValidationPipe({
+  exceptionFactory: (e) =>
+    new BadRequestException({ message: 'Validation failed', errors: mapClassValidatorErrors(e) }),
+})
+```
+
+```json
+{
+  "type": "bad-request",
+  "title": "Validation failed",
+  "status": 400,
+  "errors": {
+    "email": ["must be an email"],
+    "address.street": ["should not be empty"]
+  }
+}
+```
+
+#### Approach 3 — `ProblemDetailsException` (field-map or RFC pointer array)
+
+Use `toValidationProblemDetails()` for a one-liner that returns a `ProblemDetailsException` directly:
+
+```ts
+import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator';
+
+// Field-map (default)
+new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e) })
+
+// RFC 9457 JSON Pointer array
+new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e, { usePointers: true }) })
+```
+
+Pointer format output:
+
+```json
+{
+  "type": "validation-error",
+  "title": "Validation Failed",
+  "status": 400,
+  "errors": [
+    { "detail": "must be an email", "pointer": "#/email" },
+    { "detail": "should not be empty", "pointer": "#/address/street" }
+  ]
+}
+```
+
+See [`docs/usage.md`](./docs/usage.md#validation-error-handling) for the full walkthrough including nested objects, custom validators, and all options.
 
 ## Development
 
