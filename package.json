@@ -1,6 +1,6 @@
 {
   "name": "nest-problem-details-filter",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "A NestJS exception filter to convert JSON responses to RFC 9457 (formerly RFC 7807)-compliant Problem Details for HTTP APIs. Standardizes HTTP error responses and sets Content-Type to application/problem+json.",
   "license": "MIT",
   "main": "dist/index.js",
