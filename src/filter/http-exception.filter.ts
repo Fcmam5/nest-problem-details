@@ -9,6 +9,7 @@ import { HttpAdapterHost } from '@nestjs/core';
 import {
   BASE_PROBLEMS_URI_KEY,
   DEFAULT_HTTP_ERRORS,
+  DEFAULT_PROBLEM_TYPE,
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
   SUPPRESS_DETAIL_KEY,
@@ -30,6 +31,14 @@ import {
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly suppressDetailFn: (ctx: SuppressDetailContext) => boolean;
 
+  /**
+   * Pre-resolved `type` URI per status code. Populated once from
+   * `defaultHttpErrors` + `baseUri` so the request path skips two
+   * `new URL(...)` calls when the caller does not provide a custom type.
+   */
+  private readonly typeUriCache: Map<number, string>;
+  private readonly fallbackTypeUri: string;
+
   constructor(
     @Inject(HttpAdapterHost)
     private readonly httpAdapterHost: HttpAdapterHost,
@@ -40,12 +49,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     @Inject(SUPPRESS_DETAIL_KEY)
     suppressDetail: SuppressDetail | undefined = undefined,
   ) {
-    // Normalize boolean / undefined into a constant predicate so the request
-    // path only ever invokes a function.
-    this.suppressDetailFn =
-      typeof suppressDetail === 'function'
-        ? suppressDetail
-        : () => suppressDetail === true;
+    this.suppressDetailFn = this.normalizeSuppressDetail(suppressDetail);
+    this.typeUriCache = this.buildTypeUriCache(defaultHttpErrors, baseUri);
+    this.fallbackTypeUri = resolveProblemUri(DEFAULT_PROBLEM_TYPE, baseUri);
   }
 
   catch(exception: HttpException, host: ArgumentsHost): void {
@@ -159,7 +165,37 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private resolveType(type: string | undefined, status: number): string {
-    const resolved = resolveProblemType(type, status, this.defaultHttpErrors);
-    return resolveProblemUri(resolved, this.baseUri);
+    // Common path: no custom type — hit the precomputed cache.
+    if (type === undefined) {
+      return this.typeUriCache.get(status) ?? this.fallbackTypeUri;
+    }
+    // Rare path: caller supplied an explicit type. Resolve live.
+    return resolveProblemUri(
+      resolveProblemType(type, status, this.defaultHttpErrors),
+      this.baseUri,
+    );
+  }
+
+  /**
+   * Normalize the `suppressDetail` option into a constant predicate so the
+   * request path only ever invokes a function.
+   */
+  private normalizeSuppressDetail(
+    suppressDetail: SuppressDetail | undefined,
+  ): (ctx: SuppressDetailContext) => boolean {
+    return typeof suppressDetail === 'function'
+      ? suppressDetail
+      : () => suppressDetail === true;
+  }
+
+  private buildTypeUriCache(
+    defaultErrors: Record<number, string>,
+    baseUri: string,
+  ): Map<number, string> {
+    const cache = new Map<number, string>();
+    for (const [statusStr, typeValue] of Object.entries(defaultErrors)) {
+      cache.set(Number(statusStr), resolveProblemUri(typeValue, baseUri));
+    }
+    return cache;
   }
 }
