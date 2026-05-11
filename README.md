@@ -17,7 +17,8 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 - **Flexible validation error handling** - Three approaches from zero-config to full RFC 9457 JSON Pointer compliance (see [Validation errors](#validation-errors))
 - **Zero runtime dependencies** - Core filter has no runtime dependencies
 
-<!-- omit from toc --> 
+<!-- omit from toc -->
+
 ## Table of contents:
 
 - [NestHttpProblemDetails (RFC 9457 / RFC 7807)](#nesthttpproblemdetails-rfc-9457--rfc-7807)
@@ -85,7 +86,7 @@ Note that the `app.get(HttpAdapterHost)` argument is needed because the `HttpExc
 `HttpExceptionFilter` accepts a base URI for if you want to return absolute URIs for your problem types, e.g:
 
 ```ts
-  app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), 'https://example.org'));
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), 'https://example.org'));
 ```
 
 Will return:
@@ -122,49 +123,57 @@ The `suppressDetail` option accepts either a boolean or a callback:
 import { HttpExceptionFilter, SuppressDetail } from 'nest-problem-details-filter';
 
 // Always suppress detail on every response:
-app.useGlobalFilters(
-  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, true),
-);
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, true));
 
 // Or suppress selectively with a callback:
-app.useGlobalFilters(
-  new HttpExceptionFilter(
-    app.get(HttpAdapterHost),
-    '',
-    undefined,
-    ({ status }) => status >= 500,
-  ),
-);
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, ({ status }) => status >= 500));
 ```
 
 With the callback above, `detail` is stripped from all 5xx responses while remaining visible on 4xx responses (where it is typically safe and useful, e.g. validation messages). See [`docs/usage.md`](./docs/usage.md#suppressing-detail-in-production) for the full API including the `SUPPRESS_DETAIL_KEY` DI token for module usage.
 
 ### As a module
 
-The library can be imported as a module, and then can use `HTTP_EXCEPTION_FILTER_KEY` to set `APP_FILTER`
+The library ships as a [dynamic module](https://docs.nestjs.com/fundamentals/dynamic-modules). Use `register()` (or `registerAsync()`) to configure it, and `HTTP_EXCEPTION_FILTER_KEY` to bind it to `APP_FILTER`:
 
 ```typescript
 import { APP_FILTER } from '@nestjs/core';
-import {
-  NestProblemDetailsModule,
-  HTTP_EXCEPTION_FILTER_KEY,
-} from 'nest-problem-details-filter';
+import { NestProblemDetailsModule, HTTP_EXCEPTION_FILTER_KEY } from 'nest-problem-details-filter';
 
 @Module({
-  imports: [NestProblemDetailsModule],
-  ...
+  imports: [
+    NestProblemDetailsModule.register({
+      baseUri: 'https://api.example.org/problems',
+      httpErrorsMap: { 418: 'teapot-error' },
+      suppressDetail: ({ status }) => status >= 500,
+    }),
+  ],
   providers: [
     {
       provide: APP_FILTER,
       useExisting: HTTP_EXCEPTION_FILTER_KEY,
     },
-    ...
   ],
 })
+export class AppModule {}
 ```
+
+For config-driven setups, `registerAsync()` resolves options from a factory:
+
+```typescript
+NestProblemDetailsModule.registerAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    baseUri: config.get('PROBLEMS_BASE_URI'),
+  }),
+});
+```
+
+Importing `NestProblemDetailsModule` directly (without calling `register()`) still works and uses sensible defaults. The legacy pattern of overriding `BASE_PROBLEMS_URI_KEY`, `HTTP_ERRORS_MAP_KEY` and `SUPPRESS_DETAIL_KEY` providers manually is also still supported.
 
 See:
 
+- [NestJS Dynamic Modules](https://docs.nestjs.com/fundamentals/dynamic-modules)
 - [Custom providers: Alias providers (`useExisting`)](https://docs.nestjs.com/fundamentals/custom-providers#alias-providers-useexisting)
 - [Using `APP_FILTER` token](https://docs.nestjs.com/exception-filters#binding-filters)
 
@@ -358,6 +367,7 @@ Check the [`docs/`](./docs/) folder for usage examples and the [OpenAPI schema](
 The filter ships three flexible approaches for surfacing `class-validator` validation errors — all using the `errors` RFC 9457 extension member (not `detail`, per §3.1.4).
 
 > **Peer dependency:** the helpers below require `class-validator` (already a NestJS validation standard). Install it alongside the filter:
+>
 > ```bash
 > npm install class-validator
 > ```
@@ -372,10 +382,7 @@ Just register `ValidationPipe` + `HttpExceptionFilter`. The filter detects the `
   "title": "Bad Request",
   "status": 400,
   "detail": "Bad Request",
-  "errors": [
-    "username must be longer than or equal to 3 characters",
-    "email must be an email"
-  ]
+  "errors": ["username must be longer than or equal to 3 characters", "email must be an email"]
 }
 ```
 
@@ -387,9 +394,8 @@ Use `mapClassValidatorErrors()` in `exceptionFactory` for per-field grouping wit
 import { mapClassValidatorErrors } from 'nest-problem-details-filter/class-validator-mappers';
 
 new ValidationPipe({
-  exceptionFactory: (e) =>
-    new BadRequestException({ message: 'Validation failed', errors: mapClassValidatorErrors(e) }),
-})
+  exceptionFactory: (e) => new BadRequestException({ message: 'Validation failed', errors: mapClassValidatorErrors(e) }),
+});
 ```
 
 ```json
@@ -412,10 +418,10 @@ Use `toValidationProblemDetails()` for a one-liner that returns a `ProblemDetail
 import { toValidationProblemDetails } from 'nest-problem-details-filter/class-validator-mappers';
 
 // Field-map (default)
-new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e) })
+new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e) });
 
 // RFC 9457 JSON Pointer array
-new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e, { usePointers: true }) })
+new ValidationPipe({ exceptionFactory: (e) => toValidationProblemDetails(e, { usePointers: true }) });
 ```
 
 Pointer format output:
