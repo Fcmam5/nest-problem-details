@@ -1,3 +1,5 @@
+import { HttpException as NestHttpException } from '@nestjs/common';
+
 /**
  * As specified in RFC 9457 §3 (formerly RFC 7807 §3.1).
  * https://datatracker.ietf.org/doc/html/rfc9457#section-3
@@ -21,6 +23,33 @@ export interface IErrorDetail {
     [key: string]: unknown;
   };
 }
+
+/**
+ * Context passed to the `suppressDetail` callback, describing the current
+ * Problem Details response before it is sent to the client.
+ */
+export interface SuppressDetailContext {
+  status: number;
+  type: string;
+  exception: NestHttpException;
+}
+
+/**
+ * Controls whether the `detail` field is omitted from the Problem Details
+ * response.
+ *
+ * - Pass `true` to suppress `detail` on every response.
+ * - Pass a callback to suppress conditionally; return `true` to omit.
+ *
+ * @example
+ * // Always suppress
+ * suppressDetail: true
+ *
+ * @example
+ * // Suppress only for 5xx errors
+ * suppressDetail: ({ status }) => status >= 500
+ */
+export type SuppressDetail = true | ((ctx: SuppressDetailContext) => boolean);
 
 /**
  * Shape of the payload returned by `HttpException.getResponse()` when not a

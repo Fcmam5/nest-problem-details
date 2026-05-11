@@ -12,6 +12,7 @@ import {
   HTTP_ERRORS_MAP_KEY,
   BASE_PROBLEMS_URI_KEY,
   PROBLEM_CONTENT_TYPE,
+  SUPPRESS_DETAIL_KEY,
 } from './constants';
 import { NestProblemDetailsModule } from '../nest-problem-details.module';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -294,6 +295,10 @@ describe('HttpExceptionFilter', () => {
             useValue: 'http://fcmam5.me/problems',
           },
           {
+            provide: SUPPRESS_DETAIL_KEY,
+            useValue: undefined,
+          },
+          {
             provide: HTTP_EXCEPTION_FILTER_KEY,
             useClass: HttpExceptionFilter,
           },
@@ -567,6 +572,121 @@ describe('HttpExceptionFilter', () => {
           ],
         } as unknown as IProblemDetail);
       });
+    });
+  });
+
+  describe('suppressDetail option', () => {
+    it('omits detail when suppressDetail returns true', () => {
+      const suppressFilter = new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        '',
+        undefined,
+        ({ status }: { status: number }) => status >= 500,
+      );
+
+      suppressFilter.catch(
+        new HttpException(
+          { message: 'Oops', error: 'DB timeout', statusCode: 500 },
+          500,
+        ),
+        mockArgumentsHost,
+      );
+
+      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+        mockGetResponse(),
+        expect.objectContaining({ status: 500, detail: undefined }),
+        500,
+      );
+    });
+
+    it('keeps detail when suppressDetail returns false', () => {
+      const suppressFilter = new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        '',
+        undefined,
+        ({ status }: { status: number }) => status >= 500,
+      );
+
+      suppressFilter.catch(
+        new HttpException(
+          { message: 'Not Found', error: 'Dragon missing', statusCode: 404 },
+          404,
+        ),
+        mockArgumentsHost,
+      );
+
+      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+        mockGetResponse(),
+        expect.objectContaining({ status: 404, detail: 'Dragon missing' }),
+        404,
+      );
+    });
+
+    it('keeps detail when suppressDetail is not configured', () => {
+      const bareFilter = new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+      );
+
+      bareFilter.catch(
+        new HttpException(
+          { message: 'Oops', error: 'DB timeout', statusCode: 500 },
+          500,
+        ),
+        mockArgumentsHost,
+      );
+
+      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+        mockGetResponse(),
+        expect.objectContaining({ status: 500, detail: 'DB timeout' }),
+        500,
+      );
+    });
+
+    it('omits detail on all responses when suppressDetail is true', () => {
+      const suppressFilter = new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        '',
+        undefined,
+        true,
+      );
+
+      suppressFilter.catch(
+        new HttpException(
+          { message: 'Not Found', error: 'Dragon missing', statusCode: 404 },
+          404,
+        ),
+        mockArgumentsHost,
+      );
+
+      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+        mockGetResponse(),
+        expect.objectContaining({ status: 404, detail: undefined }),
+        404,
+      );
+    });
+
+    it('passes status, type, and exception to the callback', () => {
+      const suppressFn = jest.fn().mockReturnValue(false);
+      const suppressFilter = new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        '',
+        undefined,
+        suppressFn,
+      );
+      const exception = new HttpException(
+        { message: 'Gone', error: 'Resource deleted', statusCode: 410 },
+        410,
+      );
+
+      suppressFilter.catch(exception, mockArgumentsHost);
+
+      expect(suppressFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 410,
+          type: 'gone',
+          exception,
+        }),
+      );
     });
   });
 

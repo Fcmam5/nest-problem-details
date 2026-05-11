@@ -2,6 +2,7 @@
 
 - [Usage Documentation](#usage-documentation)
   - [As a global filter](#as-a-global-filter)
+    - [Suppressing `detail` in production](#suppressing-detail-in-production)
   - [As a module](#as-a-module)
   - [Throwing exceptions](#throwing-exceptions)
     - [Recommended: `ProblemDetailsException`](#recommended-problemdetailsexception)
@@ -56,6 +57,88 @@ Will return:
   "title": "Dragon not found",
   "status": 404,
   "detail": "Could not find any dragon with ID: 99"
+}
+```
+
+### Suppressing `detail` in production
+
+> **Recommended for production deployments.** The `detail` field can expose internal error messages to clients. Use the `suppressDetail` option to omit it — either always, or based on custom logic.
+
+Pass `true` as the fourth constructor argument to suppress `detail` on every response:
+
+```ts
+import { HttpExceptionFilter } from 'nest-problem-details-filter';
+
+app.useGlobalFilters(
+  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, true),
+);
+```
+
+Or pass a callback for conditional suppression. When the callback returns `true`, `detail` is omitted:
+
+```ts
+import { HttpExceptionFilter, SuppressDetail } from 'nest-problem-details-filter';
+
+const suppress: SuppressDetail = ({ status }) => status >= 500;
+
+app.useGlobalFilters(
+  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, suppress),
+);
+```
+
+The callback receives a `SuppressDetailContext` with three fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | `number` | HTTP status code of the response |
+| `type` | `string` | Resolved problem type URI |
+| `exception` | `HttpException` | The original caught exception |
+
+This allows fine-grained control:
+
+```ts
+// Hide detail for all 5xx errors
+({ status }) => status >= 500
+
+// Hide detail only for a specific problem type
+({ type }) => type === 'about:blank'
+
+// Keep detail visible for known safe exceptions, hide for everything else 5xx
+({ status, exception }) =>
+  status >= 500 && !(exception instanceof MyKnownSafeException)
+```
+
+When using the module, override the `SUPPRESS_DETAIL_KEY` provider. Use `true` to always suppress, or a callback for conditional logic:
+
+```ts
+import {
+  NestProblemDetailsModule,
+  HTTP_EXCEPTION_FILTER_KEY,
+  SUPPRESS_DETAIL_KEY,
+} from 'nest-problem-details-filter';
+
+@Module({
+  imports: [NestProblemDetailsModule],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useExisting: HTTP_EXCEPTION_FILTER_KEY,
+    },
+    // Always suppress:
+    { provide: SUPPRESS_DETAIL_KEY, useValue: true },
+    // Or conditionally:
+    // { provide: SUPPRESS_DETAIL_KEY, useValue: ({ status }) => status >= 500 },
+  ],
+})
+```
+
+When `detail` is suppressed, the response omits the field entirely:
+
+```json
+{
+  "type": "internal-server-error",
+  "title": "Something went wrong",
+  "status": 500
 }
 ```
 

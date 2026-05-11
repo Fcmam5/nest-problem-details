@@ -128,6 +128,18 @@ export class TestController {
     throw new HttpException(errorObj, parseInt(status, 10));
   }
 
+  @Get('server-error')
+  serverError(): void {
+    throw new HttpException(
+      {
+        message: 'Something went wrong',
+        error: 'Database connection timeout',
+        statusCode: 500,
+      },
+      500,
+    );
+  }
+
   @Get('business-error')
   @ApiProblemResponse({
     status: 403,

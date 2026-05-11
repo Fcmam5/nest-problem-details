@@ -48,6 +48,7 @@ export const DEFAULT_HTTP_ERRORS: IDefaultHTTPErrors = {
 export const BASE_PROBLEMS_URI_KEY = 'BASE_PROBLEMS_URI';
 export const HTTP_ERRORS_MAP_KEY = 'HTTP_ERRORS_MAP';
 export const HTTP_EXCEPTION_FILTER_KEY = 'HTTP_EXCEPTION_FILTER';
+export const SUPPRESS_DETAIL_KEY = 'SUPPRESS_DETAIL';
 
 export const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 

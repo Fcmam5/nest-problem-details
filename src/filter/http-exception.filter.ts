@@ -11,8 +11,9 @@ import {
   DEFAULT_HTTP_ERRORS,
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
+  SUPPRESS_DETAIL_KEY,
 } from './constants';
-import { IExceptionResponse } from './interfaces';
+import { IExceptionResponse, SuppressDetail } from './interfaces';
 import { formatRetryAfter } from '../exception/retry-after';
 import { isErrorObject } from './type-guards';
 import {
@@ -30,6 +31,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     private baseUri = '',
     @Inject(HTTP_ERRORS_MAP_KEY)
     private defaultHttpErrors = DEFAULT_HTTP_ERRORS,
+    @Inject(SUPPRESS_DETAIL_KEY)
+    private suppressDetail: SuppressDetail | undefined = undefined,
   ) {}
 
   catch(exception: HttpException, host: ArgumentsHost): void {
@@ -79,12 +82,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     }
 
+    const resolvedType = this.resolveType(type, status);
+
+    const shouldSuppress =
+      detail !== undefined &&
+      (this.suppressDetail === true ||
+        (typeof this.suppressDetail === 'function' &&
+          this.suppressDetail({ status, type: resolvedType, exception })));
+    const suppressedDetail = shouldSuppress ? undefined : detail;
+
     const responseBody: Record<string, unknown> = {
       ...objectExtras,
-      type: this.resolveType(type, status),
+      type: resolvedType,
       title: resolveProblemTitle(title, status),
       status,
-      detail,
+      detail: suppressedDetail,
     };
 
     if (errors !== undefined) {
