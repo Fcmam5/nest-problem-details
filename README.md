@@ -24,6 +24,7 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
   - [Features](#features)
   - [Usage](#usage)
     - [As a global filter](#as-a-global-filter)
+      - [Suppressing `detail` in production](#suppressing-detail-in-production)
     - [As a module](#as-a-module)
     - [Throwing exceptions](#throwing-exceptions)
       - [`Retry-After` header](#retry-after-header)
@@ -97,6 +98,46 @@ Will return:
   "detail": "Could not find any dragon with ID: 99"
 }
 ```
+
+#### Suppressing `detail` in production
+
+> **Recommended for production deployments.** The `detail` field can expose internal error messages to clients. Use the `suppressDetail` option to omit it — either always, or based on custom logic.
+
+When you use Nest's built-in exceptions (e.g. `NotFoundException`, `BadRequestException`) or throw a plain `HttpException` without a custom `ProblemDetailsException`, the filter maps the exception's built-in message directly into `detail`. This means stack traces, database error strings, or other sensitive messages can leak to the client without any extra effort on your part.
+
+For example, throwing `new InternalServerErrorException('Database connection timeout')` will produce:
+
+```json
+{
+  "type": "internal-server-error",
+  "title": "Internal Server Error",
+  "status": 500,
+  "detail": "Database connection timeout"
+}
+```
+
+The `suppressDetail` option accepts either a boolean or a callback:
+
+```ts
+import { HttpExceptionFilter, SuppressDetail } from 'nest-problem-details-filter';
+
+// Always suppress detail on every response:
+app.useGlobalFilters(
+  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, true),
+);
+
+// Or suppress selectively with a callback:
+app.useGlobalFilters(
+  new HttpExceptionFilter(
+    app.get(HttpAdapterHost),
+    '',
+    undefined,
+    ({ status }) => status >= 500,
+  ),
+);
+```
+
+With the callback above, `detail` is stripped from all 5xx responses while remaining visible on 4xx responses (where it is typically safe and useful, e.g. validation messages). See [`docs/usage.md`](./docs/usage.md#suppressing-detail-in-production) for the full API including the `SUPPRESS_DETAIL_KEY` DI token for module usage.
 
 ### As a module
 

@@ -4,6 +4,7 @@ import {
   HTTP_ERRORS_MAP_KEY,
   BASE_PROBLEMS_URI_KEY,
   HTTP_EXCEPTION_FILTER_KEY,
+  SUPPRESS_DETAIL_KEY,
 } from './constants';
 import { HttpExceptionFilter } from './http-exception.filter';
 
@@ -15,6 +16,11 @@ export const BASE_PROBLEMS_URI: Provider = {
 export const HTTP_ERRORS_MAP: Provider = {
   provide: HTTP_ERRORS_MAP_KEY,
   useValue: DEFAULT_HTTP_ERRORS,
+};
+
+export const SUPPRESS_DETAIL: Provider = {
+  provide: SUPPRESS_DETAIL_KEY,
+  useValue: undefined,
 };
 
 export const HTTP_EXCEPTION_FILTER: Provider = {

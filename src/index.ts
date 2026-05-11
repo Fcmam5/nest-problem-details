@@ -13,12 +13,15 @@ export {
   HTTP_EXCEPTION_FILTER_KEY,
   PROBLEM_CONTENT_TYPE,
   DEFAULT_PROBLEM_TYPE,
+  SUPPRESS_DETAIL_KEY,
 } from './filter/constants';
 
 export {
   IProblemDetail,
   IErrorDetail,
   IExceptionResponse,
+  SuppressDetailContext,
+  SuppressDetail,
 } from './filter/interfaces';
 
 export {
