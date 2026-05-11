@@ -665,6 +665,33 @@ describe('HttpExceptionFilter', () => {
       );
     });
 
+    it('preserves detail when the callback throws', () => {
+      const suppressFilter = new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        '',
+        undefined,
+        () => {
+          throw new Error('boom');
+        },
+      );
+
+      expect(() =>
+        suppressFilter.catch(
+          new HttpException(
+            { message: 'Oops', error: 'DB timeout', statusCode: 500 },
+            500,
+          ),
+          mockArgumentsHost,
+        ),
+      ).not.toThrow();
+
+      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+        mockGetResponse(),
+        expect.objectContaining({ status: 500, detail: 'DB timeout' }),
+        500,
+      );
+    });
+
     it('passes status, type, and exception to the callback', () => {
       const suppressFn = jest.fn().mockReturnValue(false);
       const suppressFilter = new HttpExceptionFilter(

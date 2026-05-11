@@ -13,7 +13,11 @@ import {
   PROBLEM_CONTENT_TYPE,
   SUPPRESS_DETAIL_KEY,
 } from './constants';
-import { IExceptionResponse, SuppressDetail } from './interfaces';
+import {
+  IExceptionResponse,
+  SuppressDetail,
+  SuppressDetailContext,
+} from './interfaces';
 import { formatRetryAfter } from '../exception/retry-after';
 import { isErrorObject } from './type-guards';
 import {
@@ -24,6 +28,8 @@ import {
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly suppressDetailFn: (ctx: SuppressDetailContext) => boolean;
+
   constructor(
     @Inject(HttpAdapterHost)
     private readonly httpAdapterHost: HttpAdapterHost,
@@ -32,8 +38,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     @Inject(HTTP_ERRORS_MAP_KEY)
     private defaultHttpErrors = DEFAULT_HTTP_ERRORS,
     @Inject(SUPPRESS_DETAIL_KEY)
-    private suppressDetail: SuppressDetail | undefined = undefined,
-  ) {}
+    suppressDetail: SuppressDetail | undefined = undefined,
+  ) {
+    // Normalize boolean / undefined into a constant predicate so the request
+    // path only ever invokes a function.
+    this.suppressDetailFn =
+      typeof suppressDetail === 'function'
+        ? suppressDetail
+        : () => suppressDetail === true;
+  }
 
   catch(exception: HttpException, host: ArgumentsHost): void {
     const httpAdapter = this.httpAdapterHost.httpAdapter;
@@ -84,12 +97,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const resolvedType = this.resolveType(type, status);
 
-    const shouldSuppress =
-      detail !== undefined &&
-      (this.suppressDetail === true ||
-        (typeof this.suppressDetail === 'function' &&
-          this.suppressDetail({ status, type: resolvedType, exception })));
-    const suppressedDetail = shouldSuppress ? undefined : detail;
+    const suppressedDetail = this.shouldSuppressDetail(detail, {
+      status,
+      type: resolvedType,
+      exception,
+    })
+      ? undefined
+      : detail;
 
     const responseBody: Record<string, unknown> = {
       ...objectExtras,
@@ -125,6 +139,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
       'Retry-After',
       formatted,
     );
+  }
+
+  /**
+   * Decide whether to omit the `detail` field. A throwing user-supplied
+   * callback must not crash the exception filter, so any error is swallowed
+   * and treated as "do not suppress".
+   */
+  private shouldSuppressDetail(
+    detail: string | undefined,
+    context: SuppressDetailContext,
+  ): boolean {
+    if (detail === undefined) return false;
+    try {
+      return this.suppressDetailFn(context);
+    } catch {
+      return false;
+    }
   }
 
   private resolveType(type: string | undefined, status: number): string {

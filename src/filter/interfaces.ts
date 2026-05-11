@@ -39,6 +39,7 @@ export interface SuppressDetailContext {
  * response.
  *
  * - Pass `true` to suppress `detail` on every response.
+ * - Pass `false` (or omit) to never suppress.
  * - Pass a callback to suppress conditionally; return `true` to omit.
  *
  * @example
@@ -49,7 +50,9 @@ export interface SuppressDetailContext {
  * // Suppress only for 5xx errors
  * suppressDetail: ({ status }) => status >= 500
  */
-export type SuppressDetail = true | ((ctx: SuppressDetailContext) => boolean);
+export type SuppressDetail =
+  | boolean
+  | ((ctx: SuppressDetailContext) => boolean);
 
 /**
  * Shape of the payload returned by `HttpException.getResponse()` when not a
