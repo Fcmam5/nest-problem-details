@@ -1,4 +1,8 @@
-export { NestProblemDetailsModule } from './nest-problem-details.module';
+export {
+  NestProblemDetailsModule,
+  NestProblemDetailsModuleOptions,
+  NestProblemDetailsModuleAsyncOptions,
+} from './nest-problem-details.module';
 export { HttpExceptionFilter } from './filter/http-exception.filter';
 export {
   ProblemDetailsException,

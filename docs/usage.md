@@ -69,9 +69,7 @@ Pass `true` as the fourth constructor argument to suppress `detail` on every res
 ```ts
 import { HttpExceptionFilter } from 'nest-problem-details-filter';
 
-app.useGlobalFilters(
-  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, true),
-);
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, true));
 ```
 
 Or pass a callback for conditional suppression. When the callback returns `true`, `detail` is omitted:
@@ -81,18 +79,16 @@ import { HttpExceptionFilter, SuppressDetail } from 'nest-problem-details-filter
 
 const suppress: SuppressDetail = ({ status }) => status >= 500;
 
-app.useGlobalFilters(
-  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, suppress),
-);
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, suppress));
 ```
 
 The callback receives a `SuppressDetailContext` with three fields:
 
-| Field | Type | Description |
-|---|---|---|
-| `status` | `number` | HTTP status code of the response |
-| `type` | `string` | Resolved problem type URI |
-| `exception` | `HttpException` | The original caught exception |
+| Field       | Type            | Description                      |
+| ----------- | --------------- | -------------------------------- |
+| `status`    | `number`        | HTTP status code of the response |
+| `type`      | `string`        | Resolved problem type URI        |
+| `exception` | `HttpException` | The original caught exception    |
 
 This allows fine-grained control:
 
@@ -144,30 +140,70 @@ When `detail` is suppressed, the response omits the field entirely:
 
 ## As a module
 
-The library can be imported as a module, and then you can use `HTTP_EXCEPTION_FILTER_KEY` to set `APP_FILTER`:
+The library ships as a [dynamic module](https://docs.nestjs.com/fundamentals/dynamic-modules). The recommended pattern is `NestProblemDetailsModule.register()`:
 
 ```typescript
 import { APP_FILTER } from '@nestjs/core';
-import {
-  NestProblemDetailsModule,
-  HTTP_EXCEPTION_FILTER_KEY,
-} from 'nest-problem-details-filter';
+import { NestProblemDetailsModule, HTTP_EXCEPTION_FILTER_KEY } from 'nest-problem-details-filter';
 
 @Module({
-  imports: [NestProblemDetailsModule],
-  // ...
+  imports: [
+    NestProblemDetailsModule.register({
+      baseUri: 'https://api.example.org/problems',
+      httpErrorsMap: { 418: 'teapot-error' },
+      suppressDetail: ({ status }) => status >= 500,
+    }),
+  ],
   providers: [
     {
       provide: APP_FILTER,
       useExisting: HTTP_EXCEPTION_FILTER_KEY,
     },
-    // ...
   ],
 })
+export class AppModule {}
 ```
+
+`register()` accepts:
+
+| Option           | Type                          | Default               | Description                                                                  |
+| ---------------- | ----------------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| `baseUri`        | `string`                      | `''`                  | Base URI prepended to every problem `type`.                                  |
+| `httpErrorsMap`  | `Record<number, string>`      | `DEFAULT_HTTP_ERRORS` | Status-to-type slug overrides; merged on top of the defaults.                |
+| `suppressDetail` | `boolean \| (ctx) => boolean` | `undefined`           | See [Suppressing `detail` in production](#suppressing-detail-in-production). |
+
+### `registerAsync()`
+
+For options sourced from a `ConfigService` or another injectable:
+
+```typescript
+NestProblemDetailsModule.registerAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    baseUri: config.get('PROBLEMS_BASE_URI'),
+    suppressDetail: config.get('NODE_ENV') === 'production',
+  }),
+});
+```
+
+### Static (zero-config) usage
+
+Importing `NestProblemDetailsModule` directly without calling `register()` still works and uses sensible defaults (empty `baseUri`, `DEFAULT_HTTP_ERRORS`, no `suppressDetail`):
+
+```typescript
+@Module({
+  imports: [NestProblemDetailsModule],
+  providers: [{ provide: APP_FILTER, useExisting: HTTP_EXCEPTION_FILTER_KEY }],
+})
+export class AppModule {}
+```
+
+The legacy pattern of overriding `BASE_PROBLEMS_URI_KEY`, `HTTP_ERRORS_MAP_KEY` and `SUPPRESS_DETAIL_KEY` providers manually is also still supported for advanced use cases.
 
 See:
 
+- [NestJS Dynamic Modules](https://docs.nestjs.com/fundamentals/dynamic-modules)
 - [Custom providers: Alias providers (`useExisting`)](https://docs.nestjs.com/fundamentals/custom-providers#alias-providers-useexisting)
 - [Using `APP_FILTER` token](https://docs.nestjs.com/exception-filters#binding-filters)
 
@@ -456,10 +492,7 @@ Content-Type: application/problem+json; charset=utf-8
 Code:
 
 ```js
-throw new NotFoundException(
-  'Dragon not found',
-  `Could not find any dragon with ID: ${id}`
-);
+throw new NotFoundException('Dragon not found', `Could not find any dragon with ID: ${id}`);
 ```
 
 Response:
@@ -483,6 +516,7 @@ Content-Type: application/problem+json; charset=utf-8
 The library supports three approaches for surfacing `class-validator` errors. Choose the one that fits your use case.
 
 > **Peer dependency:** these helpers require `class-validator` (already a NestJS validation standard). Install it alongside the filter:
+>
 > ```bash
 > npm install class-validator
 > ```
@@ -512,11 +546,7 @@ app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
   "title": "Bad Request",
   "status": 400,
   "detail": "Bad Request",
-  "errors": [
-    "username must be longer than or equal to 3 characters",
-    "email must be an email",
-    "address.street should not be empty"
-  ]
+  "errors": ["username must be longer than or equal to 3 characters", "email must be an email", "address.street should not be empty"]
 }
 ```
 
@@ -594,7 +624,7 @@ exceptionFactory: (e) =>
     status: 422,
     title: 'Unprocessable Entity',
     type: 'unprocessable-entity',
-  })
+  });
 ```
 
 ---
@@ -637,7 +667,7 @@ exceptionFactory: (validationErrors) =>
     title: 'Validation Failed',
     type: 'validation-error',
     errors: mapToPointerErrors(validationErrors),
-  })
+  });
 ```
 
 ---

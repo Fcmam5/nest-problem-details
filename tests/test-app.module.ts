@@ -315,3 +315,20 @@ export class TestAppModule {}
   ],
 })
 export class TestAppModuleWithModule {}
+
+@Module({
+  imports: [
+    NestProblemDetailsModule.register({
+      baseUri: 'https://api.example.org/problems',
+      httpErrorsMap: { 418: 'teapot-error' },
+    }),
+  ],
+  controllers: [TestController],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useExisting: HTTP_EXCEPTION_FILTER_KEY,
+    },
+  ],
+})
+export class TestAppModuleWithRegister {}

@@ -2,7 +2,11 @@ import { INestApplication } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import request from 'supertest';
 import { HttpExceptionFilter } from '../src';
-import { TestAppModule, TestAppModuleWithModule } from './test-app.module';
+import {
+  TestAppModule,
+  TestAppModuleWithModule,
+  TestAppModuleWithRegister,
+} from './test-app.module';
 import { runIntegrationTests } from './integration-tests.suite';
 
 function getServer(app: INestApplication): any {
@@ -30,6 +34,37 @@ describe('Default (Generic) Adapter', () => {
     },
     getServer,
   );
+
+  describe('NestProblemDetailsModule.register()', () => {
+    let app: INestApplication;
+
+    beforeAll(async () => {
+      app = await NestFactory.create(TestAppModuleWithRegister);
+      await app.init();
+    });
+
+    afterAll(() => app.close());
+
+    it('uses the configured baseUri to build type URIs', async () => {
+      const response = await request(getServer(app))
+        .get('/api/test/default-not-found')
+        .expect(404);
+
+      expect(response.body.type).toBe(
+        'https://api.example.org/problems/not-found',
+      );
+    });
+
+    it('honors the configured httpErrorsMap override', async () => {
+      const response = await request(getServer(app))
+        .get('/api/test/generic-string/418')
+        .expect(418);
+
+      expect(response.body.type).toBe(
+        'https://api.example.org/problems/teapot-error',
+      );
+    });
+  });
 
   describe('suppressDetail option', () => {
     let app: INestApplication;
