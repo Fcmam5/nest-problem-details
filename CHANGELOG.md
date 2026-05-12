@@ -14,10 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `NestProblemDetailsModule.register(options)` — configure `baseUri`, `httpErrorsMap` and `suppressDetail` through a typed options object instead of manually overriding provider tokens
 - `NestProblemDetailsModule.registerAsync({ imports, inject, useFactory })` — resolve options from an injectable factory (e.g. `ConfigService`)
 - `NestProblemDetailsModuleOptions` and `NestProblemDetailsModuleAsyncOptions` exported from the public API
+- README "Quick start" section with copy-paste install + binding snippet and result diff
+- `packagephobia` install-size badge in README
 
 ### Changed
 
 - Static `NestProblemDetailsModule` import and manual token overrides remain supported (backward compatible)
+- `HttpExceptionFilter` now omits the `detail` key from the response body entirely when no detail is available or `suppressDetail` returned `true` (previously the key was set to `undefined` and dropped only at JSON serialization)
+- `suppressDetail` documentation now leads with `NestProblemDetailsModule.register({ suppressDetail })`; the legacy `SUPPRESS_DETAIL_KEY` token override is documented as a fallback
+
+### Security
+
+- Repo ships `.npmrc` with `minimum-release-age=4320` (3 days) to defend contributor machines and CI against supply-chain attacks via freshly-published malicious dependency versions. Honored by npm ≥ 11.5 and pnpm ≥ 10. See `CONTRIBUTING.md` for the escape hatch.
 
 ## [1.7.0] - 2026-05-11
 
@@ -57,23 +65,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `@ApiProblemResponse()` decorator via `nest-problem-details-filter/swagger` subpath — documents `application/problem+json` responses without forcing `@nestjs/swagger` on users who don't need it
+- `httpErrors` option on `@ApiProblemResponse()` so the documented example matches a custom status-to-type map
 - `Retry-After` header support (RFC 9110 §10.2.3) — set via `ProblemDetailsException.retryAfter` or any `HttpException` subclass exposing the same field
+- Coveralls coverage reporting in CI
 
 ### Fixed
 
 - `type` resolution now uses WHATWG URL (RFC 9457 §3.1.1); `baseUri` query and hash are stripped before path resolution
+- Plain string schema for the `Retry-After` Date header in Swagger output
 
 ## [1.3.0] - 2026-04-29
 
 ### Added
 
+- `HttpExceptionFilter` aligned with RFC 9457 — `type` (URI reference), `title`, `status`, `detail`, `instance` are surfaced according to the spec (closes #24)
 - `ProblemDetailsException` — dedicated exception class accepting a flat RFC 9457 payload directly (resolves #19)
+- ESLint enforcement of TODO comment ticket references via `eslint-plugin-todo-tickets`
 
 ### Changed
 
 - Monorepo flattened to single-package layout
 - Strict TypeScript mode enabled
 - `isErrorObject` type guard extracted to separate utility file
+- Repository references renamed from `nest-http-problem-details` to `nest-problem-details`
 
 ### Fixed
 

@@ -503,7 +503,8 @@ The mock app automatically restarts when you edit `tests/mock-main.ts` or `tests
 ### Lint & format
 
 ```bash
-npm run lint        # ESLint with auto-fix
+npm run lint        # ESLint check (no auto-fix; fails on issues)
+npm run lint:fix    # ESLint with --fix
 npm run format      # Prettier (src/**/*.ts)
 ```
 
