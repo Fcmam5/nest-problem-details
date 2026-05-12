@@ -103,21 +103,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const resolvedType = this.resolveType(type, status);
 
-    const suppressedDetail = this.shouldSuppressDetail(detail, {
+    const shouldSuppressDetailInResponse = this.shouldSuppressDetail(detail, {
       status,
       type: resolvedType,
       exception,
-    })
-      ? undefined
-      : detail;
+    });
 
     const responseBody: Record<string, unknown> = {
       ...objectExtras,
       type: resolvedType,
       title: resolveProblemTitle(title, status),
       status,
-      detail: suppressedDetail,
     };
+
+    if (!shouldSuppressDetailInResponse && detail !== undefined) {
+      responseBody['detail'] = detail;
+    }
 
     if (errors !== undefined) {
       responseBody['errors'] = errors;

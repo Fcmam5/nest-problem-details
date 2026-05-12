@@ -592,11 +592,10 @@ describe('HttpExceptionFilter', () => {
         mockArgumentsHost,
       );
 
-      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
-        mockGetResponse(),
-        expect.objectContaining({ status: 500, detail: undefined }),
-        500,
-      );
+      const replyArg = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+        .calls[0][1];
+      expect(replyArg).toMatchObject({ status: 500 });
+      expect(replyArg).not.toHaveProperty('detail');
     });
 
     it('keeps detail when suppressDetail returns false', () => {
@@ -658,11 +657,10 @@ describe('HttpExceptionFilter', () => {
         mockArgumentsHost,
       );
 
-      expect(mockHttpAdapterHost.httpAdapter.reply).toHaveBeenCalledWith(
-        mockGetResponse(),
-        expect.objectContaining({ status: 404, detail: undefined }),
-        404,
-      );
+      const replyArg = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+        .calls[0][1];
+      expect(replyArg).toMatchObject({ status: 404 });
+      expect(replyArg).not.toHaveProperty('detail');
     });
 
     it('preserves detail when the callback throws', () => {

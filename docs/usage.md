@@ -4,6 +4,8 @@
   - [As a global filter](#as-a-global-filter)
     - [Suppressing `detail` in production](#suppressing-detail-in-production)
   - [As a module](#as-a-module)
+    - [`registerAsync()`](#registerasync)
+    - [Static (zero-config) usage](#static-zero-config-usage)
   - [Throwing exceptions](#throwing-exceptions)
     - [Recommended: `ProblemDetailsException`](#recommended-problemdetailsexception)
       - [Optional `type`](#optional-type)
@@ -11,6 +13,7 @@
   - [Retry-After header](#retry-after-header)
     - [With Nest's native exceptions](#with-nests-native-exceptions)
   - [Swagger / OpenAPI](#swagger--openapi)
+    - [Registering a named `ProblemDetails` model](#registering-a-named-problemdetails-model)
     - [Aligning with `BASE_PROBLEMS_URI`](#aligning-with-base_problems_uri)
     - [Aligning with `HTTP_ERRORS_MAP_KEY`](#aligning-with-http_errors_map_key)
   - [Example responses](#example-responses)
@@ -104,29 +107,32 @@ This allows fine-grained control:
   status >= 500 && !(exception instanceof MyKnownSafeException)
 ```
 
-When using the module, override the `SUPPRESS_DETAIL_KEY` provider. Use `true` to always suppress, or a callback for conditional logic:
+When using the module, pass `suppressDetail` to `register()`:
 
 ```ts
-import {
-  NestProblemDetailsModule,
-  HTTP_EXCEPTION_FILTER_KEY,
-  SUPPRESS_DETAIL_KEY,
-} from 'nest-problem-details-filter';
+import { NestProblemDetailsModule, HTTP_EXCEPTION_FILTER_KEY } from 'nest-problem-details-filter';
 
 @Module({
-  imports: [NestProblemDetailsModule],
+  imports: [
+    NestProblemDetailsModule.register({
+      suppressDetail: ({ status }) => status >= 500, // or: true
+    }),
+  ],
   providers: [
     {
       provide: APP_FILTER,
       useExisting: HTTP_EXCEPTION_FILTER_KEY,
     },
-    // Always suppress:
-    { provide: SUPPRESS_DETAIL_KEY, useValue: true },
-    // Or conditionally:
-    // { provide: SUPPRESS_DETAIL_KEY, useValue: ({ status }) => status >= 500 },
   ],
 })
+export class AppModule {}
 ```
+
+> **Legacy:** if you import `NestProblemDetailsModule` statically, you can still override the `SUPPRESS_DETAIL_KEY` provider directly:
+>
+> ```ts
+> { provide: SUPPRESS_DETAIL_KEY, useValue: true }
+> ```
 
 When `detail` is suppressed, the response omits the field entirely:
 

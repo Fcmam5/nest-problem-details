@@ -17,6 +17,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
   - [Code of Conduct](#code-of-conduct)
   - [I Have a Question](#i-have-a-question)
   - [I Want To Contribute](#i-want-to-contribute)
+    - [Local development setup](#local-development-setup)
     - [Reporting Bugs](#reporting-bugs)
     - [Suggesting Enhancements](#suggesting-enhancements)
   - [Attribution](#attribution)
@@ -50,6 +51,17 @@ We will then take care of the issue as soon as possible.
 > ### Legal Notice <!-- omit in toc -->
 > When contributing to this project, you must agree that you have authored 100% of the content, that you have the necessary rights to the content and that the content you contribute may be provided under the project license.
 > All contributions must be made and reviewed by humans. AI tooling can assist but cannot directly author PRs.
+
+### Local development setup
+
+```bash
+git clone https://github.com/Fcmam5/nest-problem-details.git
+cd nest-problem-details
+npm install
+npm test
+```
+
+> **Heads-up: `minimum-release-age`.** The repo ships an `.npmrc` with `minimum-release-age=4320` (3 days). This is a supply-chain hardening measure — it blocks installing dependency versions published less than 3 days ago, so a freshly compromised release can't land in our `node_modules` immediately. If `npm install` fails because a recent release is "too young", either wait, or temporarily run with `npm install --minimum-release-age=0`. Requires npm ≥ 11.5 or pnpm ≥ 10.
 
 ### Reporting Bugs
 
