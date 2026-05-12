@@ -16,6 +16,8 @@ jobs:
         with:
           node-version-file: .nvmrc
 
+      # Ensure npm >= 11.5 so `.npmrc` `min-release-age` is honored.
+      - run: npm install -g npm@latest
       - run: npm install
       - run: npm run format:check
       - run: npm run lint

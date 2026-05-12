@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Full release notes including code examples are published on [GitHub Releases](https://github.com/Fcmam5/nest-problem-details/releases).
 
+## [Unreleased]
+
+### Fixed
+
+- `.npmrc` typo: `minimum-release-age` to `min-release-age` (npm >= 11.5 uses `min-release-age` in days); Use only 1 day for faster dependency updates.
+
 ## [1.8.0] - 2026-05-12
 
 ### Added
@@ -25,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Repo ships `.npmrc` with `minimum-release-age=4320` (3 days) to defend contributor machines and CI against supply-chain attacks via freshly-published malicious dependency versions. Honored by npm ≥ 11.5 and pnpm ≥ 10. See `CONTRIBUTING.md` for the escape hatch.
+- Repo ships `.npmrc` with `min-release-age=0.5` (12 hours) to defend contributor machines and CI against supply-chain attacks via freshly-published malicious dependency versions. Honored by npm ≥ 11.5; pnpm users can mirror via `minimumReleaseAge` (in minutes). See `CONTRIBUTING.md` for the escape hatch.
 
 ## [1.7.0] - 2026-05-11
 

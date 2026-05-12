@@ -61,7 +61,7 @@ npm install
 npm test
 ```
 
-> **Heads-up: `minimum-release-age`.** The repo ships an `.npmrc` with `minimum-release-age=4320` (3 days). This is a supply-chain hardening measure — it blocks installing dependency versions published less than 3 days ago, so a freshly compromised release can't land in our `node_modules` immediately. If `npm install` fails because a recent release is "too young", either wait, or temporarily run with `npm install --minimum-release-age=0`. Requires npm ≥ 11.5 or pnpm ≥ 10.
+> **Heads-up: `min-release-age`.** The repo ships an `.npmrc` with `min-release-age=0.5` (12 hours; npm's unit is days, fractions accepted). This is a supply-chain hardening measure — it blocks installing dependency versions published in the last 12 hours, so a freshly compromised release can't land in our `node_modules` before the wider community has a chance to flag it. If `npm install` fails because a recent release is "too young" and your semver range only matches it, either wait or temporarily run with `npm install --min-release-age=0`. Requires npm ≥ 11.5.
 
 ### Reporting Bugs
 
