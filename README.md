@@ -1,12 +1,42 @@
 # NestHttpProblemDetails (RFC 9457 / RFC 7807)
 
 [![npm version](https://img.shields.io/npm/v/nest-problem-details-filter)](https://www.npmjs.com/package/nest-problem-details-filter)
+[![install size](https://packagephobia.com/badge?p=nest-problem-details-filter)](https://packagephobia.com/result?p=nest-problem-details-filter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Main pipeline](https://github.com/Fcmam5/nest-problem-details/actions/workflows/main.yml/badge.svg)](https://github.com/Fcmam5/nest-problem-details/actions/workflows/main.yml) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Fcmam5/nest-problem-details?utm_source=oss&utm_medium=github&utm_campaign=Fcmam5%2Fnest-problem-details&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews) [![Coverage Status](https://coveralls.io/repos/github/Fcmam5/nest-problem-details/badge.svg?branch=develop)](https://coveralls.io/github/Fcmam5/nest-problem-details?branch=develop)
 
-Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (formerly [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807))-compliant **Problem Details for HTTP APIs**.
+Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (formerly [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807))-compliant **Problem Details for HTTP APIs**. Drop in one filter — no code changes — and every error in your app starts speaking `application/problem+json`.
 
 > Keywords: RFC 9457, RFC 7807, Problem Details, HTTP API errors, NestJS, application/problem+json.
+
+## Quick start
+
+```bash
+npm i nest-problem-details-filter
+```
+
+```ts
+// main.ts
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { HttpExceptionFilter } from 'nest-problem-details-filter';
+import { AppModule } from './app/app.module';
+
+const app = await NestFactory.create(AppModule);
+app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
+```
+
+Every `HttpException` your app throws now serializes to `application/problem+json`:
+
+```diff
+- HTTP/1.1 404 Not Found
+- Content-Type: application/json
+- { "statusCode": 404, "message": "Dragon not found" }
++ HTTP/1.1 404 Not Found
++ Content-Type: application/problem+json
++ { "type": "not-found", "title": "Dragon not found", "status": 404 }
+```
+
+See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swagger.
 
 ## Features
 
@@ -17,11 +47,10 @@ Make NestJS return [RFC 9457](https://datatracker.ietf.org/doc/html/rfc9457) (fo
 - **Flexible validation error handling** - Three approaches from zero-config to full RFC 9457 JSON Pointer compliance (see [Validation errors](#validation-errors))
 - **Zero runtime dependencies** - Core filter has no runtime dependencies
 
-<!-- omit from toc -->
-
-## Table of contents:
+## Table of contents: <!-- omit from toc -->
 
 - [NestHttpProblemDetails (RFC 9457 / RFC 7807)](#nesthttpproblemdetails-rfc-9457--rfc-7807)
+  - [Quick start](#quick-start)
   - [Features](#features)
   - [Usage](#usage)
     - [As a global filter](#as-a-global-filter)
