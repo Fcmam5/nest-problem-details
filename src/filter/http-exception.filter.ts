@@ -13,6 +13,7 @@ import {
   HTTP_ERRORS_MAP_KEY,
   PROBLEM_CONTENT_TYPE,
   SUPPRESS_DETAIL_KEY,
+  STRICT_RFC_DEFAULTS_KEY,
 } from './constants';
 import {
   IExceptionResponse,
@@ -39,6 +40,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private readonly typeUriCache: Map<number, string>;
   private readonly fallbackTypeUri: string;
 
+  /**
+   * @param httpAdapterHost  NestJS HTTP adapter host (injected).
+   * @param baseUri          Base URI prepended to every problem `type`.
+   * @param defaultHttpErrors  Status-to-type slug map.
+   * @param suppressDetail   Omit `detail` from responses.
+   * @param strictRfcDefaults  When `true`, emits `about:blank` as `type` for
+   *   plain HTTP exceptions and maps the caller message to `detail` (with
+   *   `title` taken from the HTTP reason phrase), per RFC 9457. Defaults to
+   *   `false` for backward compatibility. Recommended: pass `true` for new
+   *   projects. Will default to `true` in v2, and the parameter will be
+   *   removed in v3.
+   */
   constructor(
     @Inject(HttpAdapterHost)
     private readonly httpAdapterHost: HttpAdapterHost,
@@ -48,6 +61,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     private defaultHttpErrors = DEFAULT_HTTP_ERRORS,
     @Inject(SUPPRESS_DETAIL_KEY)
     suppressDetail: SuppressDetail | undefined = undefined,
+    @Inject(STRICT_RFC_DEFAULTS_KEY)
+    private readonly strictRfcDefaults = false,
   ) {
     this.suppressDetailFn = this.normalizeSuppressDetail(suppressDetail);
     this.typeUriCache = this.buildTypeUriCache(defaultHttpErrors, baseUri);
@@ -71,7 +86,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let errors: unknown;
 
     if (typeof errorResponse === 'string') {
-      title = errorResponse;
+      // strictRfcDefaults: plain string is occurrence-specific → detail.
+      // Legacy: plain string maps to title (original behavior).
+      if (this.strictRfcDefaults) {
+        detail = errorResponse;
+      } else {
+        title = errorResponse;
+      }
     } else {
       const message = errorResponse.message;
 
@@ -82,11 +103,27 @@ export class HttpExceptionFilter implements ExceptionFilter {
         title = undefined; // resolves to HTTP status reason phrase
         errors = message;
       } else if (typeof message === 'string') {
-        title = message;
+        // strictRfcDefaults + a string `error` field present:
+        //   The `error` field signals the caller provided a user-facing message
+        //   (`message`) alongside the HTTP error label (`error`). Per RFC 9457
+        //   the caller message is occurrence-specific detail; title comes from
+        //   the status code (left undefined here).
+        // All other cases (legacy, or no `error` field at all):
+        //   `message` is the best available title — keep legacy mapping.
+        if (this.strictRfcDefaults && typeof errorResponse.error === 'string') {
+          detail = message;
+        } else {
+          title = message;
+        }
       }
 
       if (typeof errorResponse.error === 'string') {
-        detail = errorResponse.error;
+        // strictRfcDefaults: title resolves from status; the NestJS `error`
+        // string is redundant — drop it (detail was already set above).
+        // Legacy: the `error` string (HTTP reason phrase) maps to detail.
+        if (!this.strictRfcDefaults) {
+          detail = errorResponse.error;
+        }
       } else if (isErrorObject(errorResponse.error)) {
         const { type: _type, detail: _detail, ...rest } = errorResponse.error;
         type = _type;
@@ -166,8 +203,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private resolveType(type: string | undefined, status: number): string {
-    // Common path: no custom type — hit the precomputed cache.
+    // Common path: no custom type was set by the caller.
     if (type === undefined) {
+      // strictRfcDefaults: plain HTTP exceptions carry no extra semantics →
+      // use "about:blank" per RFC 9457 §4.2.1.
+      if (this.strictRfcDefaults) return DEFAULT_PROBLEM_TYPE;
       return this.typeUriCache.get(status) ?? this.fallbackTypeUri;
     }
     // Rare path: caller supplied an explicit type. Resolve live.

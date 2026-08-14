@@ -75,7 +75,7 @@ export interface ApiProblemResponseOptions {
    * Base URI for RFC 9457 `type` resolution, matching the `BASE_PROBLEMS_URI`
    * configured on {@link HttpExceptionFilter}. When provided, relative `type`
    * values are resolved into absolute URIs in the generated example (same
-   * behaviour as the runtime filter). Pass the same value you inject into the
+   * behavior as the runtime filter). Pass the same value you inject into the
    * filter to keep docs and wire format aligned.
    *
    * Query and fragment components of `baseUri` are discarded per RFC 3986
@@ -169,7 +169,7 @@ export function ApiProblemResponse(
   const headers: Record<string, HeaderObject | ReferenceObject> = {};
   // Only document the header when the runtime filter would actually emit
   // it (same validation as `formatRetryAfter`) — otherwise the docs would
-  // drift from the wire behaviour.
+  // drift from the wire behavior.
   if (
     options.retryAfter !== undefined &&
     formatRetryAfter(options.retryAfter) !== undefined

@@ -18,6 +18,7 @@ export {
   PROBLEM_CONTENT_TYPE,
   DEFAULT_PROBLEM_TYPE,
   SUPPRESS_DETAIL_KEY,
+  STRICT_RFC_DEFAULTS_KEY,
 } from './filter/constants';
 
 export {

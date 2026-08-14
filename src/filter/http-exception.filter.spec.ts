@@ -13,6 +13,7 @@ import {
   BASE_PROBLEMS_URI_KEY,
   PROBLEM_CONTENT_TYPE,
   SUPPRESS_DETAIL_KEY,
+  STRICT_RFC_DEFAULTS_KEY,
 } from './constants';
 import { NestProblemDetailsModule } from '../nest-problem-details.module';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -297,6 +298,10 @@ describe('HttpExceptionFilter', () => {
           {
             provide: SUPPRESS_DETAIL_KEY,
             useValue: undefined,
+          },
+          {
+            provide: STRICT_RFC_DEFAULTS_KEY,
+            useValue: false,
           },
           {
             provide: HTTP_EXCEPTION_FILTER_KEY,
@@ -712,6 +717,104 @@ describe('HttpExceptionFilter', () => {
           exception,
         }),
       );
+    });
+  });
+
+  describe('strictRfcDefaults: true (RFC 9457 compliance)', () => {
+    function makeStrictFilter(baseUri = ''): HttpExceptionFilter {
+      return new HttpExceptionFilter(
+        mockHttpAdapterHost as HttpAdapterHost,
+        baseUri,
+        undefined,
+        undefined,
+        true,
+      );
+    }
+
+    function caughtBody(
+      f: HttpExceptionFilter,
+      ex: HttpException,
+    ): IProblemDetail {
+      f.catch(ex, mockArgumentsHost);
+      const replyMock = mockHttpAdapterHost.httpAdapter.reply as jest.Mock;
+      const calls = replyMock.mock.calls;
+      return calls[calls.length - 1]?.[1] as IProblemDetail;
+    }
+
+    describe('title/detail mapping (issue #42)', () => {
+      it('puts the caller message in detail and the HTTP reason phrase in title', () => {
+        // throw new NotFoundException('Baked goods not found')
+        // Expected: { title: 'Not Found', detail: 'Baked goods not found' }
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException(
+            { message: 'Baked goods not found', error: 'Not Found', statusCode: 404 },
+            HttpStatus.NOT_FOUND,
+          ),
+        );
+        expect(body.title).toBe('Not Found');
+        expect(body.detail).toBe('Baked goods not found');
+      });
+
+      it('puts a plain string response in detail and resolves title from status', () => {
+        // throw new HttpException('Custom message', 418)
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException('Custom message', HttpStatus.I_AM_A_TEAPOT),
+        );
+        expect(body.title).toBe("I'm a Teapot");
+        expect(body.detail).toBe('Custom message');
+      });
+
+      it('resolves title from status phrase when no message is provided', () => {
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new BadRequestException(),
+        );
+        expect(body.title).toBe('Bad Request');
+        expect(body).not.toHaveProperty('detail');
+      });
+    });
+
+    describe('about:blank type for plain HTTP exceptions (issue #41)', () => {
+      it('uses about:blank instead of a slug for mapped status codes', () => {
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException(
+            { message: 'Baked goods not found', error: 'Not Found', statusCode: 404 },
+            HttpStatus.NOT_FOUND,
+          ),
+        );
+        expect(body.type).toBe('about:blank');
+      });
+
+      it('still uses about:blank even when baseUri is set', () => {
+        const f = makeStrictFilter('https://api.example.com/problems');
+        const body = caughtBody(
+          f,
+          new BadRequestException('Validation failed'),
+        );
+        expect(body.type).toBe('about:blank');
+      });
+
+      it('preserves explicit caller-supplied type even in strict mode', () => {
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException(
+            {
+              message: 'Out of credit',
+              error: { type: 'out-of-credit', detail: 'Balance is 0.' },
+            },
+            HttpStatus.FORBIDDEN,
+          ),
+        );
+        expect(body.type).toBe('out-of-credit');
+      });
     });
   });
 

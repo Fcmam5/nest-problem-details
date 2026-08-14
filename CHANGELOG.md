@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `strictRfcDefaults` option — opt-in flag for strict RFC 9457 compliance (fixes #41 and #42):
+  - When `true`, plain HTTP exceptions emit `type: "about:blank"` instead of a status-code slug, as required by RFC 9457 §4.2.1.
+  - When `true`, the caller-supplied message lands in `detail` and the HTTP reason phrase becomes `title` (the RFC-correct mapping).
+  - Defaults to `false` to preserve existing behavior. Migration path: defaults to `true` in the next major release, flag removed in the release after that.
+- `STRICT_RFC_DEFAULTS_KEY` injection token exported from the public API.
+
 ### Fixed
 
 - `.npmrc` typo: `minimum-release-age` to `min-release-age` (npm >= 11.5 uses `min-release-age` in days); Use only 1 day for faster dependency updates.
