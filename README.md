@@ -41,7 +41,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
 ## Features
 
 - **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
-- **Strict RFC 9457 defaults** - `strictRfcDefaults: true` opts into spec-correct `title`/`detail` mapping and `about:blank` type for plain HTTP exceptions (see [Strict RFC 9457 defaults](#strict-rfc-9457-defaults))
+- **Strict RFC 9457 defaults** - `strictRfcDefaults: true` opts into spec-correct `title`/`detail` mapping and `about:blank` type for any exception lacking an explicit caller-supplied type (see [Strict RFC 9457 defaults](#strict-rfc-9457-defaults))
 - **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
 - **Swagger / OpenAPI decorator (optional)** - `@ApiProblemResponse()` via `nest-problem-details-filter/swagger` subpath auto-documents `application/problem+json` without forcing `@nestjs/swagger` on users who don't need it
 - **Docs / runtime alignment** - Shared resolvers guarantee OpenAPI examples match the wire format (status-to-type map, title fallbacks, base-URI resolution)
@@ -164,7 +164,7 @@ With the callback above, `detail` is stripped from all 5xx responses while remai
 
 #### Strict RFC 9457 defaults
 
-By default the filter preserves the legacy `title`/`detail` field mapping for backward compatibility. Enable `strictRfcDefaults` to get fully spec-compliant behavior for plain HTTP exceptions:
+By default the filter preserves the legacy `title`/`detail` field mapping for backward compatibility. Enable `strictRfcDefaults` to get fully spec-compliant behavior for any exception that lacks an explicit caller-supplied type:
 
 ```ts
 // global filter
@@ -181,14 +181,14 @@ With `strictRfcDefaults: true`:
 | Throw | `type` | `title` | `detail` |
 |---|---|---|---|
 | `new NotFoundException('Baked goods not found')` | `about:blank` | `Not Found` | `Baked goods not found` |
-| `new NotFoundException()` | `about:blank` | `Not Found` | _(omitted)_ |
+| `new NotFoundException()` | `about:blank` | `Not Found` | `Not Found` |
 | `new HttpException('Custom msg', 418)` | `about:blank` | `I'm a Teapot` | `Custom msg` |
 
-Without the flag (default), the legacy mapping is used — the caller message goes to `title` and the HTTP error string to `detail`.
+Without the flag (default), the legacy mapping is used. For Nest built-in exceptions (object responses with a string `error` field such as `NotFoundException`), the caller message goes to `title` and the HTTP error string (e.g. `"Not Found"`) to `detail`. For plain string responses such as `new HttpException('Custom msg', 418)`, the message maps to `title` and `detail` remains unset.
 
 > **Migration path:** `strictRfcDefaults` defaults to `false` in v1.x. In v2 (next major) it will default to `true` — pass `false` explicitly to keep legacy behavior. In the major release after that, the flag will be removed and strict mode will be the only behavior.
 
-> **Note:** `strictRfcDefaults` only affects plain `HttpException` / built-in Nest exceptions. Explicit types and details set via `ProblemDetailsException` or the `error` object form are always preserved as-is.
+> **Note:** `strictRfcDefaults` applies to any exception without an explicit `type`: both plain `HttpException` / built-in Nest exceptions and `ProblemDetailsException` instances missing an explicit type emit `about:blank`. Explicit types and details set via `ProblemDetailsException` or the `error` object form are always preserved as-is.
 
 See [`docs/usage.md`](./docs/usage.md#strict-rfc-9457-defaults) for more details.
 

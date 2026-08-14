@@ -772,11 +772,27 @@ describe('HttpExceptionFilter', () => {
         expect(body.detail).toBe('Custom message');
       });
 
-      it('resolves title from status phrase when no message is provided', () => {
+      it('puts message in detail when object response has no error field', () => {
+        // { message: 'Custom message' } — no `error` field at all
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException(
+            { message: 'Custom message', statusCode: 422 },
+            HttpStatus.UNPROCESSABLE_ENTITY,
+          ),
+        );
+        expect(body.title).toBe('Unprocessable Entity');
+        expect(body.detail).toBe('Custom message');
+      });
+
+      it('emits the default status message as detail when no explicit message arg is given', () => {
+        // new BadRequestException() → { message: 'Bad Request', statusCode: 400 } (no error field).
+        // In strict mode, any string message in an object without an explicit type goes to detail.
         const f = makeStrictFilter();
         const body = caughtBody(f, new BadRequestException());
         expect(body.title).toBe('Bad Request');
-        expect(body).not.toHaveProperty('detail');
+        expect(body.detail).toBe('Bad Request');
       });
     });
 

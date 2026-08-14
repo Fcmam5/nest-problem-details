@@ -214,7 +214,7 @@ See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_
 - `type` uses `format: uri-reference` (not `uri`) because RFC 9457 explicitly allows relative references. The emitted value depends on configuration:
   - **With a `baseUri`**: absolute URIs like `https://example.com/problems/not-found`.
   - **Without a `baseUri`, `strictRfcDefaults: false` (default)**: short slugs like `not-found` for mapped exceptions; plain `HttpException`s use a status-code slug (e.g. `internal-server-error`).
-  - **Without a `baseUri`, `strictRfcDefaults: true`**: plain `HttpException`s emit `about:blank` per RFC 9457 §4.2.1; mapped exceptions still use their configured slug or URI.
+  - **`strictRfcDefaults: true`**: any exception without an explicit caller-supplied type emits `about:blank` per RFC 9457 §4.2.1, regardless of `baseUri` or the default status map. Exceptions with an explicit type (via the `error` object form) still resolve against `baseUri` when set.
 - **Validation errors**: the schema accepts the `errors` extension member, but the library does not emit it by default (`invalid-params` appeared only in an RFC 7807 example and was not standardised in RFC 9457).
 - The `Content-Type` response header is `application/problem+json`. RFC 9457 §6.2 also registers `application/problem+xml`; this library emits **only JSON**.
 - `title` MAY be localized via the HTTP `Content-Language` response header (RFC 9457 §3.1). This library does not localize.

@@ -147,7 +147,7 @@ When `detail` is suppressed, the response omits the field entirely:
 
 ### Strict RFC 9457 defaults
 
-By default the filter uses a legacy `title`/`detail` mapping for backward compatibility. Enable `strictRfcDefaults` to opt into fully spec-correct behavior for plain HTTP exceptions.
+By default the filter uses a legacy `title`/`detail` mapping for backward compatibility. Enable `strictRfcDefaults` to opt into fully spec-correct behavior for any exception that lacks an explicit caller-supplied `type`.
 
 **What it changes:**
 
@@ -191,7 +191,7 @@ throw new NotFoundException('Baked goods not found');
 **Rules:**
 
 - Only applies when the caller has not explicitly set a `type` or `detail` (via `ProblemDetailsException` or the `error` object form). Explicit values are always preserved.
-- When no caller message is provided (e.g. `new NotFoundException()`), `detail` is omitted — the HTTP reason phrase alone is sufficient as `title`.
+- When no explicit message is passed (e.g. `new NotFoundException()`), NestJS sets `message` to the HTTP reason phrase; in strict mode that still goes to `detail`, so `title` and `detail` will both be `"Not Found"`. Use `suppressDetail` if the redundancy is unwanted.
 - **Migration path:** `strictRfcDefaults` defaults to `false` in v1.x. In the next major release (v2) it will default to `true` — pass `false` explicitly to keep legacy behavior. In the release after that, the flag will be removed and strict mode will be the only behavior.
 
 > **Legacy token override:** if you import `NestProblemDetailsModule` statically you can still override the provider directly:

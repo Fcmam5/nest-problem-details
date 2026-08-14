@@ -102,14 +102,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         title = undefined; // resolves to HTTP status reason phrase
         errors = message;
       } else if (typeof message === 'string') {
-        // strictRfcDefaults + a string `error` field present:
-        //   The `error` field signals the caller provided a user-facing message
-        //   (`message`) alongside the HTTP error label (`error`). Per RFC 9457
-        //   the caller message is occurrence-specific detail; title comes from
-        //   the status code (left undefined here).
-        // All other cases (legacy, or no `error` field at all):
+        // strictRfcDefaults + no explicit caller-supplied type:
+        //   message is occurrence-specific → detail; title resolves from the
+        //   HTTP reason phrase (left undefined here). This applies whether or
+        //   not a string `error` field is present, and to any exception that
+        //   lacks an explicit type via the error-object form.
+        // Legacy, or caller provided an explicit type via the error-object form:
         //   `message` is the best available title — keep legacy mapping.
-        if (this.strictRfcDefaults && typeof errorResponse.error === 'string') {
+        if (this.strictRfcDefaults && !isErrorObject(errorResponse.error)) {
           detail = message;
         } else {
           title = message;
