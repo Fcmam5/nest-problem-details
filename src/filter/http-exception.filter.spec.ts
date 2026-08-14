@@ -749,7 +749,11 @@ describe('HttpExceptionFilter', () => {
         const body = caughtBody(
           f,
           new HttpException(
-            { message: 'Baked goods not found', error: 'Not Found', statusCode: 404 },
+            {
+              message: 'Baked goods not found',
+              error: 'Not Found',
+              statusCode: 404,
+            },
             HttpStatus.NOT_FOUND,
           ),
         );
@@ -770,10 +774,7 @@ describe('HttpExceptionFilter', () => {
 
       it('resolves title from status phrase when no message is provided', () => {
         const f = makeStrictFilter();
-        const body = caughtBody(
-          f,
-          new BadRequestException(),
-        );
+        const body = caughtBody(f, new BadRequestException());
         expect(body.title).toBe('Bad Request');
         expect(body).not.toHaveProperty('detail');
       });
@@ -785,7 +786,11 @@ describe('HttpExceptionFilter', () => {
         const body = caughtBody(
           f,
           new HttpException(
-            { message: 'Baked goods not found', error: 'Not Found', statusCode: 404 },
+            {
+              message: 'Baked goods not found',
+              error: 'Not Found',
+              statusCode: 404,
+            },
             HttpStatus.NOT_FOUND,
           ),
         );

@@ -76,8 +76,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const status = exception.getStatus();
     const errorResponse = exception.getResponse() as
-      | string
-      | IExceptionResponse;
+      string | IExceptionResponse;
 
     let title: string | undefined;
     let detail: string | undefined;

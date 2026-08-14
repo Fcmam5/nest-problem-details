@@ -86,8 +86,7 @@ export interface NestProblemDetailsModuleAsyncOptions {
   useFactory: (
     ...args: any[]
   ) =>
-    | NestProblemDetailsModuleOptions
-    | Promise<NestProblemDetailsModuleOptions>;
+    NestProblemDetailsModuleOptions | Promise<NestProblemDetailsModuleOptions>;
 }
 
 @Module({
