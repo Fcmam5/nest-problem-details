@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { DECORATORS } from '@nestjs/swagger/dist/constants';
+import { DECORATORS } from '@nestjs/swagger';
 
 import { PROBLEM_CONTENT_TYPE } from '../filter/constants';
 import { ApiProblemResponse } from './api-problem-response.decorator';

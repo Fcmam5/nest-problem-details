@@ -5,7 +5,7 @@ import type {
   HeaderObject,
   ReferenceObject,
   SchemaObject,
-} from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+} from './openapi-types';
 
 import { formatRetryAfter, RetryAfterValue } from '../exception/retry-after';
 import { PROBLEM_CONTENT_TYPE } from '../filter/constants';
