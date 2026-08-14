@@ -1,4 +1,4 @@
-import type { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+import type { SchemaObject } from './openapi-types';
 
 /**
  * OpenAPI 3.0 schema for an RFC 9457 (formerly RFC 7807) Problem Details

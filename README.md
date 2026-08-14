@@ -41,6 +41,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
 ## Features
 
 - **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
+- **Strict RFC 9457 defaults** - `strictRfcDefaults: true` opts into spec-correct `title`/`detail` mapping and `about:blank` type for any exception lacking an explicit caller-supplied type (see [Strict RFC 9457 defaults](#strict-rfc-9457-defaults))
 - **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
 - **Swagger / OpenAPI decorator (optional)** - `@ApiProblemResponse()` via `nest-problem-details-filter/swagger` subpath auto-documents `application/problem+json` without forcing `@nestjs/swagger` on users who don't need it
 - **Docs / runtime alignment** - Shared resolvers guarantee OpenAPI examples match the wire format (status-to-type map, title fallbacks, base-URI resolution)
@@ -55,6 +56,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
   - [Usage](#usage)
     - [As a global filter](#as-a-global-filter)
       - [Suppressing `detail` in production](#suppressing-detail-in-production)
+      - [Strict RFC 9457 defaults](#strict-rfc-9457-defaults)
     - [As a module](#as-a-module)
     - [Throwing exceptions](#throwing-exceptions)
       - [`Retry-After` header](#retry-after-header)
@@ -160,6 +162,36 @@ app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost), '', undef
 
 With the callback above, `detail` is stripped from all 5xx responses while remaining visible on 4xx responses (where it is typically safe and useful, e.g. validation messages). See [`docs/usage.md`](./docs/usage.md#suppressing-detail-in-production) for the full API including the `SUPPRESS_DETAIL_KEY` DI token for module usage.
 
+#### Strict RFC 9457 defaults
+
+By default the filter preserves the legacy `title`/`detail` field mapping for backward compatibility. Enable `strictRfcDefaults` to get fully spec-compliant behavior for any exception that lacks an explicit caller-supplied type:
+
+```ts
+// global filter
+app.useGlobalFilters(
+  new HttpExceptionFilter(app.get(HttpAdapterHost), '', undefined, undefined, true),
+);
+
+// or via the module
+NestProblemDetailsModule.register({ strictRfcDefaults: true })
+```
+
+With `strictRfcDefaults: true`:
+
+| Throw | `type` | `title` | `detail` |
+|---|---|---|---|
+| `new NotFoundException('Baked goods not found')` | `about:blank` | `Not Found` | `Baked goods not found` |
+| `new NotFoundException()` | `about:blank` | `Not Found` | `Not Found` |
+| `new HttpException('Custom msg', 418)` | `about:blank` | `I'm a Teapot` | `Custom msg` |
+
+Without the flag (default), the legacy mapping is used. For Nest built-in exceptions (object responses with a string `error` field such as `NotFoundException`), the caller message goes to `title` and the HTTP error string (e.g. `"Not Found"`) to `detail`. For plain string responses such as `new HttpException('Custom msg', 418)`, the message maps to `title` and `detail` remains unset.
+
+> **Migration path:** `strictRfcDefaults` defaults to `false` in v1.x. In v2 (next major) it will default to `true` — pass `false` explicitly to keep legacy behavior. In the major release after that, the flag will be removed and strict mode will be the only behavior.
+>
+> **Note:** `strictRfcDefaults` applies to any exception without an explicit `type`: both plain `HttpException` / built-in Nest exceptions and `ProblemDetailsException` instances missing an explicit type emit `about:blank`. Explicit types and details set via `ProblemDetailsException` or the `error` object form are always preserved as-is.
+
+See [`docs/usage.md`](./docs/usage.md#strict-rfc-9457-defaults) for more details.
+
 ### As a module
 
 The library ships as a [dynamic module](https://docs.nestjs.com/fundamentals/dynamic-modules). Use `register()` (or `registerAsync()`) to configure it, and `HTTP_EXCEPTION_FILTER_KEY` to bind it to `APP_FILTER`:
@@ -174,6 +206,7 @@ import { NestProblemDetailsModule, HTTP_EXCEPTION_FILTER_KEY } from 'nest-proble
       baseUri: 'https://api.example.org/problems',
       httpErrorsMap: { 418: 'teapot-error' },
       suppressDetail: ({ status }) => status >= 500,
+      strictRfcDefaults: true,
     }),
   ],
   providers: [

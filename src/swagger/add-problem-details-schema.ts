@@ -1,4 +1,4 @@
-import type { OpenAPIObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+import type { OpenAPIObject } from '@nestjs/swagger';
 
 import { PROBLEM_DETAILS_SCHEMA } from './problem-schema';
 

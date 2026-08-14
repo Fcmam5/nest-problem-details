@@ -12,12 +12,14 @@ import {
   DEFAULT_HTTP_ERRORS,
   HTTP_ERRORS_MAP_KEY,
   SUPPRESS_DETAIL_KEY,
+  STRICT_RFC_DEFAULTS_KEY,
 } from './filter/constants';
 import {
   BASE_PROBLEMS_URI,
   HTTP_ERRORS_MAP,
   HTTP_EXCEPTION_FILTER,
   SUPPRESS_DETAIL,
+  STRICT_RFC_DEFAULTS,
 } from './filter/providers';
 import { SuppressDetail } from './filter/interfaces';
 
@@ -25,6 +27,7 @@ const staticProviders = [
   BASE_PROBLEMS_URI,
   HTTP_ERRORS_MAP,
   SUPPRESS_DETAIL,
+  STRICT_RFC_DEFAULTS,
   HTTP_EXCEPTION_FILTER,
 ];
 
@@ -49,6 +52,27 @@ export interface NestProblemDetailsModuleOptions {
    * @see SuppressDetail
    */
   suppressDetail?: SuppressDetail;
+  /**
+   * When `true`, enables strict RFC 9457 compliance for plain HTTP exceptions:
+   * - `type` defaults to `"about:blank"` instead of a status-code slug (§4.2.1).
+   * - `title` is always the HTTP reason phrase; the caller-supplied message
+   *   goes into `detail` instead.
+   *
+   * Defaults to `false` to preserve existing behavior. Pass `true` to opt in
+   * now — this is the recommended setting for new projects.
+   *
+   * **Migration path:**
+   * - v1.x (now): opt-in — set to `true` to enable, `false` is the default.
+   * - v2 (next major): this field will be marked `@deprecated` and will
+   *   default to `true`. Pass `false` explicitly to keep legacy behavior, or
+   *   remove the option entirely if you were already passing `true`.
+   * - v3 (future): field removed; strict behavior is the only mode.
+   *
+   * @see https://github.com/Fcmam5/nest-problem-details/issues/47
+   * @see https://github.com/Fcmam5/nest-problem-details/issues/48
+   */
+  // TODO #48: remove this field in v3
+  strictRfcDefaults?: boolean;
 }
 
 /**
@@ -62,8 +86,7 @@ export interface NestProblemDetailsModuleAsyncOptions {
   useFactory: (
     ...args: any[]
   ) =>
-    | NestProblemDetailsModuleOptions
-    | Promise<NestProblemDetailsModuleOptions>;
+    NestProblemDetailsModuleOptions | Promise<NestProblemDetailsModuleOptions>;
 }
 
 @Module({
@@ -97,6 +120,10 @@ export class NestProblemDetailsModule {
       {
         provide: SUPPRESS_DETAIL_KEY,
         useValue: options.suppressDetail,
+      },
+      {
+        provide: STRICT_RFC_DEFAULTS_KEY,
+        useValue: options.strictRfcDefaults ?? false, // TODO #47: flip default to true in v2
       },
       HTTP_EXCEPTION_FILTER,
     ];
@@ -149,6 +176,12 @@ export class NestProblemDetailsModule {
         provide: SUPPRESS_DETAIL_KEY,
         useFactory: (opts: NestProblemDetailsModuleOptions) =>
           opts.suppressDetail,
+        inject: [OPTIONS_TOKEN],
+      },
+      {
+        provide: STRICT_RFC_DEFAULTS_KEY,
+        useFactory: (opts: NestProblemDetailsModuleOptions) =>
+          opts.strictRfcDefaults ?? false, // TODO #47: flip default to true in v2
         inject: [OPTIONS_TOKEN],
       },
       HTTP_EXCEPTION_FILTER,

@@ -3,6 +3,7 @@
 - [Usage Documentation](#usage-documentation)
   - [As a global filter](#as-a-global-filter)
     - [Suppressing `detail` in production](#suppressing-detail-in-production)
+    - [Strict RFC 9457 defaults](#strict-rfc-9457-defaults)
   - [As a module](#as-a-module)
     - [`registerAsync()`](#registerasync)
     - [Static (zero-config) usage](#static-zero-config-usage)
@@ -144,6 +145,61 @@ When `detail` is suppressed, the response omits the field entirely:
 }
 ```
 
+### Strict RFC 9457 defaults
+
+By default the filter uses a legacy `title`/`detail` mapping for backward compatibility. Enable `strictRfcDefaults` to opt into fully spec-correct behavior for any exception that lacks an explicit caller-supplied `type`.
+
+**What it changes:**
+
+| Aspect | Default (`false`) | Strict (`true`) |
+|---|---|---|
+| `type` for plain exceptions | status-code slug (e.g. `not-found`) | `about:blank` (RFC 9457 §4.2.1) |
+| Caller message (`NotFoundException('Baked goods not found')`) | → `title` | → `detail` |
+| `title` for plain exceptions | caller message | HTTP reason phrase (`Not Found`) |
+
+**Global filter:**
+
+```ts
+app.useGlobalFilters(
+  new HttpExceptionFilter(
+    app.get(HttpAdapterHost),
+    '',        // baseUri
+    undefined, // httpErrorsMap
+    undefined, // suppressDetail
+    true,      // strictRfcDefaults
+  ),
+);
+```
+
+**Module:**
+
+```ts
+NestProblemDetailsModule.register({ strictRfcDefaults: true })
+```
+
+**Before and after:**
+
+```ts
+throw new NotFoundException('Baked goods not found');
+```
+
+```diff
+- { "type": "not-found",    "title": "Baked goods not found", "status": 404, "detail": "Not Found" }
++ { "type": "about:blank",  "title": "Not Found",             "status": 404, "detail": "Baked goods not found" }
+```
+
+**Rules:**
+
+- Only applies when the caller has not explicitly set a `type` or `detail` (via `ProblemDetailsException` or the `error` object form). Explicit values are always preserved.
+- When no explicit message is passed (e.g. `new NotFoundException()`), NestJS sets `message` to the HTTP reason phrase; in strict mode that still goes to `detail`, so `title` and `detail` will both be `"Not Found"`. Use `suppressDetail` if the redundancy is unwanted.
+- **Migration path:** `strictRfcDefaults` defaults to `false` in v1.x. In the next major release (v2) it will default to `true` — pass `false` explicitly to keep legacy behavior. In the release after that, the flag will be removed and strict mode will be the only behavior.
+
+> **Legacy token override:** if you import `NestProblemDetailsModule` statically you can still override the provider directly:
+>
+> ```ts
+> { provide: STRICT_RFC_DEFAULTS_KEY, useValue: true }
+> ```
+
 ## As a module
 
 The library ships as a [dynamic module](https://docs.nestjs.com/fundamentals/dynamic-modules). The recommended pattern is `NestProblemDetailsModule.register()`:
@@ -172,11 +228,12 @@ export class AppModule {}
 
 `register()` accepts:
 
-| Option           | Type                          | Default               | Description                                                                  |
-| ---------------- | ----------------------------- | --------------------- | ---------------------------------------------------------------------------- |
-| `baseUri`        | `string`                      | `''`                  | Base URI prepended to every problem `type`.                                  |
-| `httpErrorsMap`  | `Record<number, string>`      | `DEFAULT_HTTP_ERRORS` | Status-to-type slug overrides; merged on top of the defaults.                |
-| `suppressDetail` | `boolean \| (ctx) => boolean` | `undefined`           | See [Suppressing `detail` in production](#suppressing-detail-in-production). |
+| Option              | Type                          | Default               | Description                                                                        |
+| ------------------- | ----------------------------- | --------------------- | ---------------------------------------------------------------------------------- |
+| `baseUri`           | `string`                      | `''`                  | Base URI prepended to every problem `type`.                                        |
+| `httpErrorsMap`     | `Record<number, string>`      | `DEFAULT_HTTP_ERRORS` | Status-to-type slug overrides; merged on top of the defaults.                      |
+| `suppressDetail`    | `boolean \| (ctx) => boolean` | `undefined`           | See [Suppressing `detail` in production](#suppressing-detail-in-production).       |
+| `strictRfcDefaults` | `boolean`                     | `false`               | Opt-in to spec-correct `title`/`detail` mapping and `about:blank` type. See [Strict RFC 9457 defaults](#strict-rfc-9457-defaults). |
 
 ### `registerAsync()`
 
@@ -479,7 +536,7 @@ Code:
 throw new NotFoundException('Dragon not found');
 ```
 
-Response:
+Response (default, `strictRfcDefaults: false`):
 
 ```http
 HTTP/1.1 404 Not Found
@@ -490,6 +547,20 @@ Content-Type: application/problem+json; charset=utf-8
   "title": "Dragon not found",
   "status": 404,
   "detail": "Not Found"
+}
+```
+
+Response with `strictRfcDefaults: true` (RFC 9457-correct):
+
+```http
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json; charset=utf-8
+
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Dragon not found"
 }
 ```
 

@@ -51,8 +51,7 @@ export interface SuppressDetailContext {
  * suppressDetail: ({ status }) => status >= 500
  */
 export type SuppressDetail =
-  | boolean
-  | ((ctx: SuppressDetailContext) => boolean);
+  boolean | ((ctx: SuppressDetailContext) => boolean);
 
 /**
  * Shape of the payload returned by `HttpException.getResponse()` when not a
