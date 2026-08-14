@@ -187,7 +187,7 @@ With `strictRfcDefaults: true`:
 Without the flag (default), the legacy mapping is used. For Nest built-in exceptions (object responses with a string `error` field such as `NotFoundException`), the caller message goes to `title` and the HTTP error string (e.g. `"Not Found"`) to `detail`. For plain string responses such as `new HttpException('Custom msg', 418)`, the message maps to `title` and `detail` remains unset.
 
 > **Migration path:** `strictRfcDefaults` defaults to `false` in v1.x. In v2 (next major) it will default to `true` — pass `false` explicitly to keep legacy behavior. In the major release after that, the flag will be removed and strict mode will be the only behavior.
-
+>
 > **Note:** `strictRfcDefaults` applies to any exception without an explicit `type`: both plain `HttpException` / built-in Nest exceptions and `ProblemDetailsException` instances missing an explicit type emit `about:blank`. Explicit types and details set via `ProblemDetailsException` or the `error` object form are always preserved as-is.
 
 See [`docs/usage.md`](./docs/usage.md#strict-rfc-9457-defaults) for more details.
