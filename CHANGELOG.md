@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `tests/rfc9457/` — a dedicated RFC 9457 compliance test suite checking the wire format against the spec's normative statements section by section (#44). See [`docs/rfc9457-compliance.md`](./docs/rfc9457-compliance.md) for the layout, coverage, and known gaps. AI-generated (with maintainer review) — see the disclaimer in the docs page.
 - `strictRfcDefaults` option — opt-in flag for strict RFC 9457 compliance (fixes #41 and #42):
   - When `true`, plain HTTP exceptions emit `type: "about:blank"` instead of a status-code slug, as required by RFC 9457 §4.2.1.
   - When `true`, the caller-supplied message lands in `detail` and the HTTP reason phrase becomes `title` (the RFC-correct mapping).
