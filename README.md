@@ -422,7 +422,7 @@ components:
 
 ### Documentation
 
-Check the [`docs/`](./docs/) folder for usage examples and the [OpenAPI schema](./docs/openapi.md).
+Check the [`docs/`](./docs/) folder for usage examples, the [OpenAPI schema](./docs/openapi.md), and the [RFC 9457 compliance test suite](./docs/rfc9457-compliance.md).
 
 ### Validation errors
 
@@ -518,6 +518,20 @@ npm run test:watch
 # With coverage
 npm run test:cov
 ```
+
+A dedicated suite in [`tests/rfc9457/`](./tests/rfc9457/) checks the wire
+format against the normative text of RFC 9457, section by section — see
+[`docs/rfc9457-compliance.md`](./docs/rfc9457-compliance.md) for the layout,
+what's covered, and known gaps (tracked via `TODO #<issue>` markers on any
+skipped test).
+
+> **Disclaimer:** the RFC 9457 compliance suite was generated with AI
+> assistance, prompted to read the RFC directly and derive tests from
+> its MUST/SHOULD statements for #44, then reviewed by a maintainer. It isn't
+> guaranteed to be a complete or perfectly faithful reading of the spec — if
+> you find a gap or a misreading, please
+> [file an issue](https://github.com/Fcmam5/nest-problem-details/issues/new)
+> and/or a PR.
 
 ### Mock app
 
