@@ -66,10 +66,10 @@ pnpm test
 
 npm works too (`npm install && npm test`); lockfiles are intentionally not committed, so either package manager resolves from the semver ranges in `package.json`.
 
-> **Heads-up: minimum release age.** Dependency versions published within the last day are refused, so a freshly compromised release can't land in our `node_modules` before the wider community has a chance to flag it. Two files configure this, since the two package managers read different sources:
+> **Heads-up: minimum release age.** Dependency versions published within the last day are refused, so a freshly compromised release can't land in our `node_modules` before the wider community has a chance to flag it. pnpm rejects versions newer than 24 hours; npm rejects versions newer than 12 hours. Two files configure this, since the two package managers read different sources:
 >
-> - `pnpm-workspace.yaml` — `minimumReleaseAge: 1440` (minutes). pnpm 11 no longer reads non-auth settings from `.npmrc`.
-> - `.npmrc` — `min-release-age=0.5` (npm's unit is days, fractions accepted; requires npm ≥ 11.5).
+> - `pnpm-workspace.yaml` — `minimumReleaseAge: 1440` (minutes, i.e. 24 hours). pnpm 11 no longer reads non-auth settings from `.npmrc`.
+> - `.npmrc` — `min-release-age=0.5` (npm's unit is days, fractions accepted; 0.5 days = 12 hours; requires npm ≥ 11.10.0).
 >
 > If an install fails because a recent release is "too young" and your semver range only matches it, prefer waiting. If you must proceed, override it for that one command (`pnpm install --config.minimumReleaseAge=0` or `npm install --min-release-age=0`) rather than editing the committed policy.
 
