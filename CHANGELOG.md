@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-08-16
+
 ### Added
 
 - `tests/rfc9457/` — a dedicated RFC 9457 compliance test suite checking the wire format against the spec's normative statements section by section (#44). See [`docs/rfc9457-compliance.md`](./docs/rfc9457-compliance.md) for the layout, coverage, and known gaps. AI-generated (with maintainer review) — see the disclaimer in the docs page.
@@ -27,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Non-string `type`, `detail` and `instance` values are no longer copied into the response. `HttpException` takes `Record<string, any>`, so nothing type-checks the nested `error` object: `error: { detail: null }` compiles fine and used to emit `"detail": null`. Wrong-typed `detail` and `instance` are now dropped, and `type` falls back to its usual default. RFC 9457 §3.1 requires ignoring members of the wrong type. Values passed through `ProblemDetailsException` were already rejected at compile time.
 - Under `strictRfcDefaults`, an error object whose `type` is not a string is now treated as having no type at all: `message` becomes `detail`, and `title` comes from the HTTP reason phrase. Previously the mere presence of an error object sent `message` to `title`, even when its `type` was unusable.
+- CI (`main.yml`, `release.yml`) installs with pnpm instead of npm, so the pipeline applies the same dependency policies contributors get locally. Publishing still uses `npm publish --provenance`.
+- `devDependencies` refreshed: NestJS 11.2.1, `@nestjs/swagger` 11.4.6, ESLint 10.8.1, `typescript-eslint` 8.67.0, Prettier 3.9.6, `ts-jest` 29.4.12, `@types/node` 26, `@types/supertest` 7. No runtime dependencies exist, so nothing changes for consumers.
+- `typescript` stays on 6.x: TypeScript 7 no longer exposes the JavaScript compiler API `ts-jest` 29 needs, so the whole test suite fails to run under it. Revisit once `ts-jest` supports the `@typescript/native` split.
+
+### Security
+
+- `pnpm-workspace.yaml` is now committed (previously hidden by an over-broad `pnpm-*` entry in `.gitignore`, which also concealed the pnpm-only supply-chain settings). It pins `minimumReleaseAge: 1440` so pnpm refuses versions published less than 24 hours ago, mirroring the intent of `.npmrc`'s `min-release-age` for npm users. Lockfiles remain untracked.
 
 ## [1.8.0] - 2026-05-12
 
