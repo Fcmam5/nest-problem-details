@@ -1,0 +1,19 @@
+# pnpm configuration. Since pnpm 11, pnpm reads only auth/registry settings from
+# `.npmrc`, so everything else has to live here. `.npmrc` is kept for npm users.
+#
+# Reject installing any package version younger than 24 hours (value in minutes).
+# Defense against supply-chain attacks via newly-published malicious versions.
+# This is pnpm 11's default; setting it explicitly also covers pnpm 10.16+ users,
+# where the default is 0. See https://pnpm.io/supply-chain-security
+minimumReleaseAge: 1440
+
+# pnpm 11 defaults `strictDepBuilds` to true: install fails when a dependency
+# wants to run a build script that has not been allowed here.
+allowBuilds:
+  '@scarf/scarf': true
+  unrs-resolver: true
+
+# Defensive pin: js-yaml 5.0.0–5.2.1 are superseded; force any transitive
+# resolution in that range up to a patched release.
+overrides:
+  js-yaml@>=5.0.0 <=5.2.1: ^5.2.2

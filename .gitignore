@@ -219,5 +219,7 @@ $RECYCLE.BIN/
 
 
 package-lock.json
-pnpm-*
+# Lockfiles are intentionally not committed; pnpm-workspace.yaml (pnpm config) is.
+pnpm-lock.yaml
+pnpm-debug.log*
 TODO.md
