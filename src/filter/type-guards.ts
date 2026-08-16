@@ -12,13 +12,18 @@ export function isErrorObject(
 }
 
 /**
- * Narrow a value to a `string`, or `undefined` for any other type, so the
- * filter treats a wrong-typed member as absent — RFC 9457 §3.1 requires such a
- * member to be "ignored".
+ * Returns `value` when it is a string, otherwise `undefined`.
  *
- * Mostly spec-lawyering: these members are already typed as `string`, so only
- * untyped JS callers or an explicit `as any` reach this. Kept because it costs
- * one branch, not because it is a realistic hazard.
+ * Used on `type`, `detail` and `instance` so a wrong-typed value is treated as
+ * if the caller never set it, which is what RFC 9457 §3.1 asks for.
+ *
+ * Easy to hit by accident: `HttpException` takes `Record<string, any>`, so the
+ * nested `error` object is never type-checked. This compiles under `--strict`
+ * and used to put `"detail": null` on the wire:
+ *
+ *     new HttpException({ message: 'Nope', error: { detail: null } }, 400);
+ *
+ * `ProblemDetailsException` does type these members, so that path was safe.
  */
 export function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;

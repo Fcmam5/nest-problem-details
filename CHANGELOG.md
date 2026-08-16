@@ -20,13 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- The filter now guards against a non-finite `status` (e.g. `NaN` from a failed `parseInt`) shipping an error as **HTTP 200** (#52). Both Nest adapters guard `res.status()` with `if (statusCode)`, and `NaN` is falsy, so the code is never applied and the error goes out as `200 OK` with `"status": null` — clients branching on `res.ok` read a server fault as success. This is upstream Nest behavior (stock Nest returns `200` + `{"statusCode":null}` for the same throw), but it breaks the §3.1.2 guarantee this filter exists to make, so non-finite statuses now fall back to `500`. Finite codes still pass through unchanged; `0` remains affected upstream.
+- Throwing with a non-finite status, such as `new HttpException('Oops', NaN)` from a failed `parseInt`, returned **HTTP 200** with an error body (#52). Nest's adapters only apply the status when it is truthy (`if (statusCode)`), and `NaN` is falsy, so the status was never set and the body carried `"status": null`. Clients checking `res.ok` read the failure as success. Non-finite statuses now become `500`. Finite codes are unchanged. Note this also happens in stock Nest without this filter, and `status: 0` is still affected by it.
 - `.npmrc`: corrected the config key from `minimum-release-age` to `min-release-age` (npm ≥ 11.10.0; value in days) and shortened the window from 3 days to 12 hours (`min-release-age=0.5`).
 
 ### Changed
 
-- (FWIW) `type`, `detail` and `instance` are now ignored when their runtime value is not a string, per RFC 9457 §3.1: `detail` and `instance` are omitted from the response, while `type` falls back to its usual default (the status-code slug, or `about:blank` under `strictRfcDefaults`). Mostly spec-lawyering — these are already typed as `string`, so the old behavior needed an `as any` or an untyped JS caller. Unlikely to affect you.
-- Under `strictRfcDefaults`, a wrong-typed `type` in the error-object form now maps `message` to `detail` (with `title` from the reason phrase), consistent with an exception that supplied no type at all. Previously any error object — even one with no usable `type` — forced `message` into `title`.
+- Non-string `type`, `detail` and `instance` values are no longer copied into the response. `HttpException` takes `Record<string, any>`, so nothing type-checks the nested `error` object: `error: { detail: null }` compiles fine and used to emit `"detail": null`. Wrong-typed `detail` and `instance` are now dropped, and `type` falls back to its usual default. RFC 9457 §3.1 requires ignoring members of the wrong type. Values passed through `ProblemDetailsException` were already rejected at compile time.
+- Under `strictRfcDefaults`, an error object whose `type` is not a string is now treated as having no type at all: `message` becomes `detail`, and `title` comes from the HTTP reason phrase. Previously the mere presence of an error object sent `message` to `title`, even when its `type` was unusable.
 
 ## [1.8.0] - 2026-05-12
 
