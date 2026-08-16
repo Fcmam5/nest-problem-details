@@ -49,23 +49,36 @@ describe('HttpExceptionFilter — status edge cases', () => {
     expect(typeof roundTripped.status).toBe('number');
   });
 
-  // TODO #52: `JSON.stringify(NaN)` produces `null`, so the `status` member
-  // is no longer a number on the wire. This should be resolved by the
-  // runtime type validation work.
-  it.skip('does not serialize NaN as a JSON number', () => {
+  // Non-finite numbers pass a `typeof === 'number'` check but serialize as
+  // `null`, so they cannot be passed through. They degrade to 500 instead.
+  it.each([
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+    ['-Infinity', Number.NEGATIVE_INFINITY],
+    // Non-numeric statuses can only arrive from untyped callers.
+    ['a numeric string', '400' as unknown as number],
+    ['a non-numeric string', 'oops' as unknown as number],
+    ['null', null as unknown as number],
+    ['undefined', undefined as unknown as number],
+  ])('falls back to 500 when status is %s', (_label, status) => {
+    const f = makeFilter();
+
+    const { body, status: replied } = caughtResponse(
+      f,
+      new HttpException('Oops', status),
+    );
+
+    expect(body.status).toBe(500);
+    expect(replied).toBe(500);
+    expect(body.status).toBe(replied);
+  });
+
+  it('serializes a non-finite status as a JSON number, not null', () => {
     const f = makeFilter();
     const body = caughtBody(f, new HttpException('Oops', Number.NaN));
 
     const roundTripped = JSON.parse(JSON.stringify(body));
     expect(typeof roundTripped.status).toBe('number');
-  });
-
-  it('passes NaN through to both the body and the HTTP reply', () => {
-    const f = makeFilter();
-    const ex = new HttpException('Oops', Number.NaN);
-
-    const { body, status: replied } = caughtResponse(f, ex);
-
-    expect(Object.is(body.status, replied)).toBe(true);
+    expect(roundTripped.status).not.toBeNull();
   });
 });

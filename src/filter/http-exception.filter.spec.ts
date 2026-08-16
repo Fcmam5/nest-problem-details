@@ -822,6 +822,38 @@ describe('HttpExceptionFilter', () => {
         expect(body.type).toBe('about:blank');
       });
 
+      it('treats a wrong-typed type as no type at all for title/detail mapping', () => {
+        // A non-string `type` is discarded per §3.1, so this exception has no
+        // explicit type — `message` must map to detail, not title.
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException(
+            {
+              message: 'Out of credit',
+              error: { type: 42 as unknown as string },
+            },
+            HttpStatus.FORBIDDEN,
+          ),
+        );
+        expect(body.type).toBe('about:blank');
+        expect(body.title).toBe('Forbidden');
+        expect(body.detail).toBe('Out of credit');
+      });
+
+      it('keeps an explicit detail over message when no type is supplied', () => {
+        const f = makeStrictFilter();
+        const body = caughtBody(
+          f,
+          new HttpException(
+            { message: 'Out of credit', error: { detail: 'Balance is 0.' } },
+            HttpStatus.FORBIDDEN,
+          ),
+        );
+        expect(body.title).toBe('Forbidden');
+        expect(body.detail).toBe('Balance is 0.');
+      });
+
       it('preserves explicit caller-supplied type even in strict mode', () => {
         const f = makeStrictFilter();
         const body = caughtBody(

@@ -63,9 +63,7 @@ describe('RFC 9457 §3.1.5 — instance', () => {
     expect(body).not.toHaveProperty('instance');
   });
 
-  // TODO #52: fails today — `instance: null` is emitted verbatim instead of
-  // being omitted. Skipped so CI stays green until that's fixed.
-  it.skip('MUST ignore an instance whose value type is not a string (§3.1)', () => {
+  it('MUST ignore an instance whose value type is not a string (§3.1)', () => {
     const f = makeFilter();
     const body = caughtBody(
       f,

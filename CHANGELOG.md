@@ -20,7 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `.npmrc` typo: `minimum-release-age` to `min-release-age` (npm >= 11.5 uses `min-release-age` in days); Use only 1 day for faster dependency updates.
+- Throwing with a non-finite status, such as `new HttpException('Oops', NaN)` from a failed `parseInt`, returned **HTTP 200** with an error body (#52). Nest's adapters only apply the status when it is truthy (`if (statusCode)`), and `NaN` is falsy, so the status was never set and the body carried `"status": null`. Clients checking `res.ok` read the failure as success. Non-finite statuses now become `500`. Finite codes are unchanged. Note this also happens in stock Nest without this filter, and `status: 0` is still affected by it.
+- `.npmrc`: corrected the config key from `minimum-release-age` to `min-release-age` (npm ≥ 11.10.0; value in days) and shortened the window from 3 days to 12 hours (`min-release-age=0.5`).
+
+### Changed
+
+- Non-string `type`, `detail` and `instance` values are no longer copied into the response. `HttpException` takes `Record<string, any>`, so nothing type-checks the nested `error` object: `error: { detail: null }` compiles fine and used to emit `"detail": null`. Wrong-typed `detail` and `instance` are now dropped, and `type` falls back to its usual default. RFC 9457 §3.1 requires ignoring members of the wrong type. Values passed through `ProblemDetailsException` were already rejected at compile time.
+- Under `strictRfcDefaults`, an error object whose `type` is not a string is now treated as having no type at all: `message` becomes `detail`, and `title` comes from the HTTP reason phrase. Previously the mere presence of an error object sent `message` to `title`, even when its `type` was unusable.
 
 ## [1.8.0] - 2026-05-12
 

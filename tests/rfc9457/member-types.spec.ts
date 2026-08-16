@@ -31,10 +31,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     ['an array', ['a', 'b']],
   ] as const;
 
-  // TODO #52: all cases below fail — wrongly-typed detail values are
-  // forwarded verbatim instead of being omitted. Skipped so CI stays green
-  // until that's fixed.
-  describe.skip.each(malformed)('when detail is %s', (_label, value) => {
+  describe.each(malformed)('when detail is %s', (_label, value) => {
     it('MUST be ignored (i.e., not emitted) per §3.1', () => {
       const f = makeFilter();
       const body = caughtBody(
@@ -50,10 +47,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     });
   });
 
-  // TODO #52: all cases below fail — wrongly-typed instance values are
-  // forwarded verbatim instead of being omitted. Skipped so CI stays green
-  // until that's fixed.
-  describe.skip.each(malformed)('when instance is %s', (_label, value) => {
+  describe.each(malformed)('when instance is %s', (_label, value) => {
     it('MUST be ignored (i.e., not emitted) per §3.1', () => {
       const f = makeFilter();
       const body = caughtBody(
@@ -69,21 +63,34 @@ describe('RFC 9457 §3.1 — member value types', () => {
     });
   });
 
-  // TODO #52: fails today — a numeric `type` is forwarded unchanged. Skipped
-  // so CI stays green until that's fixed.
-  it.skip('MUST always emit type as a string, never a non-string', () => {
-    const f = makeFilter();
-    const body = caughtBody(
-      f,
-      new ProblemDetailsException({
-        status: HttpStatus.BAD_REQUEST,
-        title: 'Bad Request',
-        type: 42 as unknown as string,
-      }),
-    );
+  it.each(malformed)(
+    'MUST ignore a type that is %s, falling back to the default type',
+    (_label, value) => {
+      // The control: the same problem with no `type` at all. A wrong-typed
+      // `type` must be *ignored* (§3.1), i.e. produce exactly this — not a
+      // stringified version of the bad value.
+      const fallback = caughtBody(
+        makeFilter(),
+        new ProblemDetailsException({
+          status: HttpStatus.BAD_REQUEST,
+          title: 'Bad Request',
+        }),
+      ).type;
 
-    expect(typeof body.type).toBe('string');
-  });
+      const body = caughtBody(
+        makeFilter(),
+        new ProblemDetailsException({
+          status: HttpStatus.BAD_REQUEST,
+          title: 'Bad Request',
+          type: value as unknown as string,
+        }),
+      );
+
+      expect(typeof body.type).toBe('string');
+      expect(body.type).toBe(fallback);
+      expect(body.type).not.toBe(String(value));
+    },
+  );
 
   it('MUST always emit title as a string, never a non-string', () => {
     const f = makeFilter();
@@ -98,10 +105,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     expect(typeof body.title).toBe('string');
   });
 
-  // TODO #52: fails today — a stringified status ('400') is forwarded
-  // unchanged instead of being rejected/coerced. Skipped so CI stays green
-  // until that's fixed.
-  it.skip('MUST always emit status as a number, never a string', () => {
+  it('MUST always emit status as a number, never a string', () => {
     const f = makeFilter();
     const body = caughtBody(
       f,
@@ -111,6 +115,9 @@ describe('RFC 9457 §3.1 — member value types', () => {
       }),
     );
 
+    // `status` cannot be omitted (it is also the HTTP reply code), so a
+    // wrong-typed value degrades to 500 rather than being coerced to 400.
     expect(typeof body.status).toBe('number');
+    expect(body.status).toBe(500);
   });
 });

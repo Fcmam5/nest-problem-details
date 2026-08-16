@@ -89,12 +89,7 @@ Failing cases are marked `.skip` with a `TODO #<issue>` comment pointing to
 the tracking issue, so CI stays green while the gap remains visible and
 actionable:
 
-- [#52](https://github.com/Fcmam5/nest-problem-details/issues/52) — the
-  filter does not validate the runtime type of some standard members before
-  emitting them. Notably, an `HttpException` constructed with a `NaN` status
-  (e.g. from a failed `parseInt`) serializes to `"status": null` on the wire,
-  and `detail`/`instance`/`type`/`status` accept values of the wrong JSON
-  type (`null`, numbers, objects) instead of omitting them per §3.1.
+_None at this time._
 
 ## Running the suite
 
