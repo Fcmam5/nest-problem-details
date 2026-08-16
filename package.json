@@ -104,5 +104,8 @@
     "class-validator": {
       "optional": true
     }
+  },
+  "overrides": {
+    "js-yaml@>=5.0.0 <=5.2.1": "^5.2.2"
   }
 }
