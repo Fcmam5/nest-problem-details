@@ -11,21 +11,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - name: Use Node.js 
+
+      # pnpm honors `pnpm-workspace.yaml`: `minimumReleaseAge` (supply-chain
+      # guard), `allowBuilds` (required by pnpm 11 `strictDepBuilds`) and
+      # `overrides`. Matches what contributors run locally.
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11
+
+      - name: Use Node.js
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
 
-      # Ensure npm >= 11.5 so `.npmrc` `min-release-age` is honored.
-      - run: npm install -g npm@latest
-      - run: npm install
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run test:cov
+      - run: pnpm install
+      - run: pnpm run format:check
+      - run: pnpm run lint
+      - run: pnpm run test:cov
 
       - name: Report coverage to Coveralls
         uses: coverallsapp/github-action@v2
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
-      - run: npm run build # Test build, ain't falling for #16 again
+      - run: pnpm run build # Test build, ain't falling for #16 again

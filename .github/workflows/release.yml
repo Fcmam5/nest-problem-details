@@ -21,30 +21,37 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Same toolchain as `main.yml` and local development; pnpm applies the
+      # `pnpm-workspace.yaml` supply-chain and build-script policies.
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11
+
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: '' # disable built-in caching; managed explicitly via actions/cache below
 
-      - name: Install latest npm
-        run: npm install -g npm@latest
+      - name: Resolve pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v5
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package.json') }}
-          restore-keys: ${{ runner.os }}-npm-
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json') }}
+          restore-keys: ${{ runner.os }}-pnpm-
 
-      - run: npm install
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
+      - run: pnpm install
+      - run: pnpm run format:check
+      - run: pnpm run lint
+      - run: pnpm test
+      - run: pnpm run build
 
       - name: Pack tarball (dry-run inspection)
         run: |
           mkdir -p /tmp/pack
-          npm pack --pack-destination /tmp/pack
+          pnpm pack --pack-destination /tmp/pack
           tarball=$(ls /tmp/pack/*.tgz)
           sha256sum "$tarball" > /tmp/pack/sha256sum.txt
           cat <<EOF >> "$GITHUB_STEP_SUMMARY"
@@ -98,6 +105,8 @@ jobs:
           name: npm-tarball
           path: /tmp/pack
 
+      # Publishing stays on npm (not pnpm) for `--provenance` attestations,
+      # which npm generates natively from the OIDC token granted above.
       - name: Publish verified tarball to npm
         run: |
           tarball=$(ls /tmp/pack/*.tgz)

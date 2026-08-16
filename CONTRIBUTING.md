@@ -54,14 +54,24 @@ We will then take care of the issue as soon as possible.
 
 ### Local development setup
 
+The project is developed and tested in CI with [pnpm](https://pnpm.io) (v11+), which is what we recommend:
+
 ```bash
 git clone https://github.com/Fcmam5/nest-problem-details.git
 cd nest-problem-details
-npm install
-npm test
+nvm use        # Node version from .nvmrc
+pnpm install
+pnpm test
 ```
 
-> **Heads-up: `min-release-age`.** The repo ships an `.npmrc` with `min-release-age=0.5` (12 hours; npm's unit is days, fractions accepted). This is a supply-chain hardening measure — it blocks installing dependency versions published in the last 12 hours, so a freshly compromised release can't land in our `node_modules` before the wider community has a chance to flag it. If `npm install` fails because a recent release is "too young" and your semver range only matches it, either wait or temporarily run with `npm install --min-release-age=0`. Requires npm ≥ 11.5.
+npm works too (`npm install && npm test`); lockfiles are intentionally not committed, so either package manager resolves from the semver ranges in `package.json`.
+
+> **Heads-up: minimum release age.** Dependency versions published within the last day are refused, so a freshly compromised release can't land in our `node_modules` before the wider community has a chance to flag it. Two files configure this, since the two package managers read different sources:
+>
+> - `pnpm-workspace.yaml` — `minimumReleaseAge: 1440` (minutes). pnpm 11 no longer reads non-auth settings from `.npmrc`.
+> - `.npmrc` — `min-release-age=0.5` (npm's unit is days, fractions accepted; requires npm ≥ 11.5).
+>
+> If an install fails because a recent release is "too young" and your semver range only matches it, prefer waiting. If you must proceed, override it for that one command (`pnpm install --config.minimumReleaseAge=0` or `npm install --min-release-age=0`) rather than editing the committed policy.
 
 ### Reporting Bugs
 
