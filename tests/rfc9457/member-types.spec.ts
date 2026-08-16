@@ -63,19 +63,34 @@ describe('RFC 9457 §3.1 — member value types', () => {
     });
   });
 
-  it('MUST always emit type as a string, never a non-string', () => {
-    const f = makeFilter();
-    const body = caughtBody(
-      f,
-      new ProblemDetailsException({
-        status: HttpStatus.BAD_REQUEST,
-        title: 'Bad Request',
-        type: 42 as unknown as string,
-      }),
-    );
+  it.each(malformed)(
+    'MUST ignore a type that is %s, falling back to the default type',
+    (_label, value) => {
+      // The control: the same problem with no `type` at all. A wrong-typed
+      // `type` must be *ignored* (§3.1), i.e. produce exactly this — not a
+      // stringified version of the bad value.
+      const fallback = caughtBody(
+        makeFilter(),
+        new ProblemDetailsException({
+          status: HttpStatus.BAD_REQUEST,
+          title: 'Bad Request',
+        }),
+      ).type;
 
-    expect(typeof body.type).toBe('string');
-  });
+      const body = caughtBody(
+        makeFilter(),
+        new ProblemDetailsException({
+          status: HttpStatus.BAD_REQUEST,
+          title: 'Bad Request',
+          type: value as unknown as string,
+        }),
+      );
+
+      expect(typeof body.type).toBe('string');
+      expect(body.type).toBe(fallback);
+      expect(body.type).not.toBe(String(value));
+    },
+  );
 
   it('MUST always emit title as a string, never a non-string', () => {
     const f = makeFilter();
@@ -100,6 +115,9 @@ describe('RFC 9457 §3.1 — member value types', () => {
       }),
     );
 
+    // `status` cannot be omitted (it is also the HTTP reply code), so a
+    // wrong-typed value degrades to 500 rather than being coerced to 400.
     expect(typeof body.status).toBe('number');
+    expect(body.status).toBe(500);
   });
 });

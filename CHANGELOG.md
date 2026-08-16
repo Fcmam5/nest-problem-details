@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- (FWIW) `type`, `detail` and `instance` are now omitted when their runtime value is not a string, per RFC 9457 §3.1. Mostly spec-lawyering — these are already typed as `string`, so the old behavior needed an `as any` or an untyped JS caller. Unlikely to affect you.
+- (FWIW) `type`, `detail` and `instance` are now ignored when their runtime value is not a string, per RFC 9457 §3.1: `detail` and `instance` are omitted from the response, while `type` falls back to its usual default (the status-code slug, or `about:blank` under `strictRfcDefaults`). Mostly spec-lawyering — these are already typed as `string`, so the old behavior needed an `as any` or an untyped JS caller. Unlikely to affect you.
+- Under `strictRfcDefaults`, a wrong-typed `type` in the error-object form now maps `message` to `detail` (with `title` from the reason phrase), consistent with an exception that supplied no type at all. Previously any error object — even one with no usable `type` — forced `message` into `title`.
 
 ## [1.8.0] - 2026-05-12
 

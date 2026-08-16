@@ -97,6 +97,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
     } else {
       const message = errorResponse.message;
 
+      // Extracted before `message` is mapped: whether a *valid* `type` was
+      // supplied is what decides the strictRfcDefaults title/detail mapping
+      // below. `instance` is pulled out of the extras spread so it gets the
+      // same §3.1 type check as `type` and `detail`. See `asString`.
+      if (isErrorObject(errorResponse.error)) {
+        const {
+          type: _type,
+          detail: _detail,
+          instance: _instance,
+          ...rest
+        } = errorResponse.error;
+        type = asString(_type);
+        detail = asString(_detail);
+        instance = asString(_instance);
+        objectExtras = rest;
+      }
+
       if (Array.isArray(message) && message.length > 0) {
         // Approach 1: Nest's default ValidationPipe emits a flat string[].
         // Per RFC 9457 §3.1.4 consumers SHOULD NOT parse `detail` for
@@ -110,36 +127,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
         //   message is occurrence-specific → detail; title resolves from the
         //   HTTP reason phrase (left undefined here). This applies whether or
         //   not a string `error` field is present, and to any exception that
-        //   lacks an explicit type via the error-object form.
+        //   lacks an explicit type via the error-object form — including one
+        //   whose `type` was discarded for being wrong-typed.
         // Legacy, or caller provided an explicit type via the error-object form:
         //   `message` is the best available title — keep legacy mapping.
-        if (this.strictRfcDefaults && !isErrorObject(errorResponse.error)) {
-          detail = message;
+        if (this.strictRfcDefaults && type === undefined) {
+          // An explicit `detail` from the error object is more specific than
+          // `message`, so it wins; `message` is occurrence-specific and must
+          // not become `title` in strict mode.
+          detail ??= message;
         } else {
           title = message;
         }
       }
 
-      if (typeof errorResponse.error === 'string') {
-        // strictRfcDefaults: title resolves from status; the NestJS `error`
-        // string is redundant — drop it (detail was already set above).
+      if (typeof errorResponse.error === 'string' && !this.strictRfcDefaults) {
         // Legacy: the `error` string (HTTP reason phrase) maps to detail.
-        if (!this.strictRfcDefaults) {
-          detail = errorResponse.error;
-        }
-      } else if (isErrorObject(errorResponse.error)) {
-        // `instance` is pulled out of the extras spread so it gets the same
-        // §3.1 type check as `type` and `detail`. See `asString`.
-        const {
-          type: _type,
-          detail: _detail,
-          instance: _instance,
-          ...rest
-        } = errorResponse.error;
-        type = asString(_type);
-        detail = asString(_detail);
-        instance = asString(_instance);
-        objectExtras = rest;
+        // strictRfcDefaults: title resolves from status and the NestJS `error`
+        // string is redundant — drop it (detail was already set above).
+        detail = errorResponse.error;
       }
 
       // Approaches 2 & 3: caller supplied a structured `errors` value
