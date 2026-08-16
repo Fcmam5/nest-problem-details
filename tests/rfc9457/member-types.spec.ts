@@ -31,10 +31,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     ['an array', ['a', 'b']],
   ] as const;
 
-  // TODO #52: all cases below fail — wrongly-typed detail values are
-  // forwarded verbatim instead of being omitted. Skipped so CI stays green
-  // until that's fixed.
-  describe.skip.each(malformed)('when detail is %s', (_label, value) => {
+  describe.each(malformed)('when detail is %s', (_label, value) => {
     it('MUST be ignored (i.e., not emitted) per §3.1', () => {
       const f = makeFilter();
       const body = caughtBody(
@@ -50,10 +47,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     });
   });
 
-  // TODO #52: all cases below fail — wrongly-typed instance values are
-  // forwarded verbatim instead of being omitted. Skipped so CI stays green
-  // until that's fixed.
-  describe.skip.each(malformed)('when instance is %s', (_label, value) => {
+  describe.each(malformed)('when instance is %s', (_label, value) => {
     it('MUST be ignored (i.e., not emitted) per §3.1', () => {
       const f = makeFilter();
       const body = caughtBody(
@@ -69,9 +63,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     });
   });
 
-  // TODO #52: fails today — a numeric `type` is forwarded unchanged. Skipped
-  // so CI stays green until that's fixed.
-  it.skip('MUST always emit type as a string, never a non-string', () => {
+  it('MUST always emit type as a string, never a non-string', () => {
     const f = makeFilter();
     const body = caughtBody(
       f,
@@ -98,10 +90,7 @@ describe('RFC 9457 §3.1 — member value types', () => {
     expect(typeof body.title).toBe('string');
   });
 
-  // TODO #52: fails today — a stringified status ('400') is forwarded
-  // unchanged instead of being rejected/coerced. Skipped so CI stays green
-  // until that's fixed.
-  it.skip('MUST always emit status as a number, never a string', () => {
+  it('MUST always emit status as a number, never a string', () => {
     const f = makeFilter();
     const body = caughtBody(
       f,

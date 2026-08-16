@@ -20,7 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `.npmrc` typo: `minimum-release-age` to `min-release-age` (npm >= 11.5 uses `min-release-age` in days); Use only 1 day for faster dependency updates.
+- The filter now guards against a non-finite `status` (e.g. `NaN` from a failed `parseInt`) shipping an error as **HTTP 200** (#52). Both Nest adapters guard `res.status()` with `if (statusCode)`, and `NaN` is falsy, so the code is never applied and the error goes out as `200 OK` with `"status": null` — clients branching on `res.ok` read a server fault as success. This is upstream Nest behavior (stock Nest returns `200` + `{"statusCode":null}` for the same throw), but it breaks the §3.1.2 guarantee this filter exists to make, so non-finite statuses now fall back to `500`. Finite codes still pass through unchanged; `0` remains affected upstream.
+- `.npmrc`: corrected the config key from `minimum-release-age` to `min-release-age` (npm ≥ 11.10.0; value in days) and shortened the window from 3 days to 12 hours (`min-release-age=0.5`).
+
+### Changed
+
+- (FWIW) `type`, `detail` and `instance` are now omitted when their runtime value is not a string, per RFC 9457 §3.1. Mostly spec-lawyering — these are already typed as `string`, so the old behavior needed an `as any` or an untyped JS caller. Unlikely to affect you.
 
 ## [1.8.0] - 2026-05-12
 

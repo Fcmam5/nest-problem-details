@@ -3,6 +3,7 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
+  HttpStatus,
   Inject,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -21,7 +22,7 @@ import {
   SuppressDetailContext,
 } from './interfaces';
 import { formatRetryAfter } from '../exception/retry-after';
-import { isErrorObject } from './type-guards';
+import { asString, isErrorObject } from './type-guards';
 import {
   resolveProblemTitle,
   resolveProblemType,
@@ -74,13 +75,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
-    const status = exception.getStatus();
+    const status = this.normalizeStatus(exception.getStatus());
     const errorResponse = exception.getResponse() as
       string | IExceptionResponse;
 
     let title: string | undefined;
     let detail: string | undefined;
     let type: string | undefined;
+    let instance: string | undefined;
     let objectExtras: Record<string, unknown> | undefined;
     let errors: unknown;
 
@@ -102,6 +104,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         title = undefined; // resolves to HTTP status reason phrase
         errors = message;
       } else if (typeof message === 'string') {
+        // The `typeof` above also keeps a wrong-typed `title` out of the
+        // response (§3.1) — it falls back to the reason phrase instead.
         // strictRfcDefaults + no explicit caller-supplied type:
         //   message is occurrence-specific → detail; title resolves from the
         //   HTTP reason phrase (left undefined here). This applies whether or
@@ -124,9 +128,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
           detail = errorResponse.error;
         }
       } else if (isErrorObject(errorResponse.error)) {
-        const { type: _type, detail: _detail, ...rest } = errorResponse.error;
-        type = _type;
-        detail = _detail;
+        // `instance` is pulled out of the extras spread so it gets the same
+        // §3.1 type check as `type` and `detail`. See `asString`.
+        const {
+          type: _type,
+          detail: _detail,
+          instance: _instance,
+          ...rest
+        } = errorResponse.error;
+        type = asString(_type);
+        detail = asString(_detail);
+        instance = asString(_instance);
         objectExtras = rest;
       }
 
@@ -154,6 +166,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (!shouldSuppressDetailInResponse && detail !== undefined) {
       responseBody['detail'] = detail;
+    }
+
+    if (instance !== undefined) {
+      responseBody['instance'] = instance;
     }
 
     if (errors !== undefined) {
@@ -199,6 +215,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Coerce `status` to something JSON can represent as a number (§3.1.2).
+   *
+   * `NaN`/`±Infinity` are `typeof 'number'` but `JSON.stringify` emits them as
+   * `null`, and `NaN` is falsy so Nest's adapters skip `res.status()` and the
+   * error ships as HTTP 200. Such a status is a server-side miscalculation
+   * (e.g. a failed `parseInt`), hence 500. Finite values pass through.
+   */
+  private normalizeStatus(status: unknown): number {
+    return typeof status === 'number' && Number.isFinite(status)
+      ? status
+      : HttpStatus.INTERNAL_SERVER_ERROR;
   }
 
   private resolveType(type: string | undefined, status: number): string {

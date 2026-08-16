@@ -92,9 +92,7 @@ describe('RFC 9457 §3.1.4 — detail', () => {
     expect(body).not.toHaveProperty('detail');
   });
 
-  // TODO #52: fails today — `detail: null` is emitted verbatim instead of
-  // being omitted. Skipped so CI stays green until that's fixed.
-  it.skip('MUST ignore a detail whose value type is not a string (§3.1)', () => {
+  it('MUST ignore a detail whose value type is not a string (§3.1)', () => {
     const f = makeFilter();
     const body = caughtBody(
       f,
