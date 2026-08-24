@@ -34,7 +34,12 @@ export function formatRetryAfter(value: unknown): string | undefined {
     return Number.isNaN(value.getTime()) ? undefined : value.toUTCString();
   }
   if (typeof value === 'string') {
-    return value.trim() === '' ? undefined : value;
+    const trimmed = value.trim();
+    if (trimmed === '') return undefined;
+    // Node rejects header values containing CTL chars (e.g. CR/LF). Skip rather
+    // than let setHeader throw and break the exception filter.
+    if (/[\x00-\x1F\x7F]/.test(trimmed)) return undefined;
+    return trimmed;
   }
   return undefined;
 }

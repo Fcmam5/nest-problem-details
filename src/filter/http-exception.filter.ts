@@ -199,11 +199,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const formatted = formatRetryAfter(value);
     if (formatted === undefined) return;
 
-    this.httpAdapterHost.httpAdapter.setHeader(
-      response,
-      'Retry-After',
-      formatted,
-    );
+    try {
+      this.httpAdapterHost.httpAdapter.setHeader(
+        response,
+        'Retry-After',
+        formatted,
+      );
+    } catch {
+      // Invalid header value after formatting — omit Retry-After rather than
+      // crashing the exception filter.
+    }
   }
 
   /**
