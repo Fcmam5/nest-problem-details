@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - OpenAPI schema: `code` → `errorCode`.
 - Jest: `@swc/jest` + `.swcrc` to load NestJS 12's ESM packages.
+- Update descriptions in package.json and README.md.
 
 ## [1.9.0] - 2026-08-16
 

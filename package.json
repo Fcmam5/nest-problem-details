@@ -33,16 +33,15 @@
   "homepage": "https://github.com/Fcmam5/nest-problem-details#readme",
   "keywords": [
     "nestjs",
-    "nest",
     "problem-details",
     "problem+json",
     "rfc9457",
     "rfc7807",
-    "http-api-errors",
-    "http",
-    "api",
-    "rest",
-    "json"
+    "http-errors",
+    "exception-filter",
+    "openapi",
+    "validation",
+    "retry-after"
   ],
   "funding": {
     "type": "individual",

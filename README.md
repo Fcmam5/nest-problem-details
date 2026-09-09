@@ -43,6 +43,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
 - **RFC 9457 / RFC 7807 Compliant** - Standardized Problem Details for HTTP APIs
 - **Strict RFC 9457 defaults** - `strictRfcDefaults: true` opts into spec-correct `title`/`detail` mapping and `about:blank` type for any exception lacking an explicit caller-supplied type (see [Strict RFC 9457 defaults](#strict-rfc-9457-defaults))
 - **`Retry-After` header support** - Per RFC 9110 §10.2.3, opt-in via `ProblemDetailsException` or any `HttpException` subclass exposing `retryAfter`
+- **`ProblemDetailsException` base exception class** - Throw RFC 9457 payloads directly with optional `Retry-After`, custom extensions, and machine-readable `errorCode` (see [Throwing exceptions](#throwing-exceptions))
 - **Swagger / OpenAPI decorator (optional)** - `@ApiProblemResponse()` via `nest-problem-details-filter/swagger` subpath auto-documents `application/problem+json` without forcing `@nestjs/swagger` on users who don't need it
 - **Docs / runtime alignment** - Shared resolvers guarantee OpenAPI examples match the wire format (status-to-type map, title fallbacks, base-URI resolution)
 - **Flexible validation error handling** - Three approaches from zero-config to full RFC 9457 JSON Pointer compliance (see [Validation errors](#validation-errors))
