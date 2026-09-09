@@ -46,6 +46,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
 - **Swagger / OpenAPI decorator (optional)** - `@ApiProblemResponse()` via `nest-problem-details-filter/swagger` subpath auto-documents `application/problem+json` without forcing `@nestjs/swagger` on users who don't need it
 - **Docs / runtime alignment** - Shared resolvers guarantee OpenAPI examples match the wire format (status-to-type map, title fallbacks, base-URI resolution)
 - **Flexible validation error handling** - Three approaches from zero-config to full RFC 9457 JSON Pointer compliance (see [Validation errors](#validation-errors))
+- **Machine-readable error codes** - NestJS 12's `errorCode` is surfaced as an RFC 9457 `errorCode` extension member (see [Throwing exceptions](#throwing-exceptions))
 - **Zero runtime dependencies** - Core filter has no runtime dependencies
 
 ## Table of contents: <!-- omit from toc -->

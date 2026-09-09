@@ -8,6 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # v12 is the devDependencies default; v11 is the previous maintained
+        # major. Each leg gets its matching @nestjs/swagger major.
+        nest: ['11', '12']
 
     steps:
       - uses: actions/checkout@v6
@@ -25,11 +31,30 @@ jobs:
           node-version-file: .nvmrc
 
       - run: pnpm install
+
+      # For v11, downgrade the @nestjs packages (devDependencies pin v12).
+      # v11 and v12 share the same peer ranges (class-validator,
+      # class-transformer, reflect-metadata, rxjs), so this re-resolves cleanly
+      # without disturbing the other devDependencies. The v12 leg needs no
+      # pinning — it runs straight from devDependencies.
+      - name: Pin NestJS to v${{ matrix.nest }}
+        if: matrix.nest != '12'
+        run: |
+          pnpm add -D \
+            "@nestjs/common@^${{ matrix.nest }}" \
+            "@nestjs/core@^${{ matrix.nest }}" \
+            "@nestjs/platform-express@^${{ matrix.nest }}" \
+            "@nestjs/platform-fastify@^${{ matrix.nest }}" \
+            "@nestjs/testing@^${{ matrix.nest }}" \
+            "@nestjs/swagger@^${{ matrix.nest }}" \
+            "@nestjs/cli@^${{ matrix.nest }}"
+
       - run: pnpm run format:check
       - run: pnpm run lint
       - run: pnpm run test:cov
 
       - name: Report coverage to Coveralls
+        if: matrix.nest == '12'
         uses: coverallsapp/github-action@v2
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}

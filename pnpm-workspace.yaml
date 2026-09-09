@@ -11,6 +11,7 @@ minimumReleaseAge: 1440
 # wants to run a build script that has not been allowed here.
 allowBuilds:
   '@scarf/scarf': true
+  '@swc/core': true
   unrs-resolver: true
 
 # Defensive pin: js-yaml 5.0.0–5.2.1 are superseded; force any transitive

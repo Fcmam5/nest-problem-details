@@ -11,6 +11,7 @@
     - [Recommended: `ProblemDetailsException`](#recommended-problemdetailsexception)
       - [Optional `type`](#optional-type)
     - [Alternative: native `HttpException`](#alternative-native-httpexception)
+    - [Machine-readable error codes (`errorCode`)](#machine-readable-error-codes-errorcode)
   - [Retry-After header](#retry-after-header)
     - [With Nest's native exceptions](#with-nests-native-exceptions)
   - [Swagger / OpenAPI](#swagger--openapi)
@@ -340,6 +341,31 @@ throw new HttpException(
 ```
 
 Both forms produce identical responses; prefer `ProblemDetailsException` for new code.
+
+### Machine-readable error codes (`errorCode`)
+
+NestJS 12 added `HttpExceptionOptions.errorCode` — a stable identifier clients can branch on instead of parsing message strings. The filter surfaces it as an RFC 9457 extension member named `errorCode`:
+
+```ts
+throw new BadRequestException('Password is too weak', {
+  errorCode: 'WEAK_PASSWORD',
+});
+```
+
+```http
+HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json
+
+{
+  "type": "bad-request",
+  "title": "Password is too weak",
+  "status": 400,
+  "detail": "Bad Request",
+  "errorCode": "WEAK_PASSWORD"
+}
+```
+
+The `errorCode` member is omitted when no code is set.
 
 ## Retry-After header
 

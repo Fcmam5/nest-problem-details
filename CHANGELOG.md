@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- NestJS 12 support (peer deps now include `^12.0.0`).
+- NestJS 12 `errorCode` surfaced as an RFC 9457 `errorCode` extension member.
+
+### Changed
+
+- OpenAPI schema: `code` → `errorCode`.
+- Jest: `@swc/jest` + `.swcrc` to load NestJS 12's ESM packages.
+
 ## [1.9.0] - 2026-08-16
 
 ### Added

@@ -59,12 +59,12 @@ export const PROBLEM_DETAILS_SCHEMA: SchemaObject = {
         'A URI reference that identifies the specific occurrence of the ' +
         'problem.',
     },
-    code: {
+    errorCode: {
       type: 'string',
       maxLength: 50,
       description:
-        'Optional API-specific error code (extension member, not part of ' +
-        'RFC 9457).',
+        'Optional machine-readable error code (extension member, not part ' +
+        'of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`.',
     },
     errors: {
       type: 'array',

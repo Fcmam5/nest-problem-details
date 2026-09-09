@@ -11,6 +11,8 @@ export interface IProblemDetail {
   type: string;
   detail?: string;
   instance?: string;
+  /** Stable, machine-readable error code (RFC 9457 §3 extension member). */
+  errorCode?: string;
   [key: string]: unknown;
 }
 

@@ -78,6 +78,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = this.normalizeStatus(exception.getStatus());
     const errorResponse = exception.getResponse() as
       string | IExceptionResponse;
+    // Nest v12 `HttpExceptionOptions.errorCode` — a stable, machine-readable
+    // identifier. Read from the instance (not `getResponse()`) because the
+    // built-in exceptions don't serialize it into the body yet
+    // (nestjs/nest#17614). Duck-typed so this also compiles against v11,
+    // where the property simply doesn't exist.
+    const errorCode = (exception as { errorCode?: unknown }).errorCode;
 
     let title: string | undefined;
     let detail: string | undefined;
@@ -176,6 +182,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (instance !== undefined) {
       responseBody['instance'] = instance;
+    }
+
+    if (
+      typeof errorCode === 'string' &&
+      responseBody['errorCode'] === undefined
+    ) {
+      // RFC 9457 §3 extension member. Only set when the caller did not already
+      // provide an explicit `errorCode` via the error object.
+      responseBody['errorCode'] = errorCode;
     }
 
     if (errors !== undefined) {

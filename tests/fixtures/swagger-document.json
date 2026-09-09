@@ -59,10 +59,10 @@
                       "maxLength": 1024,
                       "description": "A URI reference that identifies the specific occurrence of the problem."
                     },
-                    "code": {
+                    "errorCode": {
                       "type": "string",
                       "maxLength": 50,
-                      "description": "Optional API-specific error code (extension member, not part of RFC 9457)."
+                      "description": "Optional machine-readable error code (extension member, not part of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`."
                     },
                     "errors": {
                       "type": "array",
@@ -158,10 +158,10 @@
                       "maxLength": 1024,
                       "description": "A URI reference that identifies the specific occurrence of the problem."
                     },
-                    "code": {
+                    "errorCode": {
                       "type": "string",
                       "maxLength": 50,
-                      "description": "Optional API-specific error code (extension member, not part of RFC 9457)."
+                      "description": "Optional machine-readable error code (extension member, not part of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`."
                     },
                     "errors": {
                       "type": "array",
@@ -274,10 +274,10 @@
                       "maxLength": 1024,
                       "description": "A URI reference that identifies the specific occurrence of the problem."
                     },
-                    "code": {
+                    "errorCode": {
                       "type": "string",
                       "maxLength": 50,
-                      "description": "Optional API-specific error code (extension member, not part of RFC 9457)."
+                      "description": "Optional machine-readable error code (extension member, not part of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`."
                     },
                     "errors": {
                       "type": "array",
@@ -382,10 +382,10 @@
             "maxLength": 1024,
             "description": "A URI reference that identifies the specific occurrence of the problem."
           },
-          "code": {
+          "errorCode": {
             "type": "string",
             "maxLength": 50,
-            "description": "Optional API-specific error code (extension member, not part of RFC 9457)."
+            "description": "Optional machine-readable error code (extension member, not part of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`."
           },
           "errors": {
             "type": "array",

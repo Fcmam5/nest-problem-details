@@ -871,6 +871,66 @@ describe('HttpExceptionFilter', () => {
     });
   });
 
+  describe('machine-readable error codes (errorCode, Nest v12)', () => {
+    beforeAll(() => {
+      filter = new HttpExceptionFilter(mockHttpAdapterHost as HttpAdapterHost);
+    });
+
+    it('maps exception.errorCode into the `errorCode` extension member', () => {
+      const exception = new BadRequestException('Password is too weak');
+      (exception as { errorCode?: string }).errorCode = 'WEAK_PASSWORD';
+
+      filter.catch(exception, mockArgumentsHost);
+
+      assertResponse(HttpStatus.BAD_REQUEST, {
+        title: 'Password is too weak',
+        detail: 'Bad Request',
+        status: HttpStatus.BAD_REQUEST,
+        type: 'bad-request',
+        errorCode: 'WEAK_PASSWORD',
+      });
+    });
+
+    it('omits `errorCode` when the exception has no errorCode', () => {
+      filter.catch(
+        new BadRequestException('Password is too weak'),
+        mockArgumentsHost,
+      );
+
+      const body = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+        .calls[0][1];
+      expect(body).not.toHaveProperty('errorCode');
+    });
+
+    it('does not override an explicit `errorCode` from the error object', () => {
+      const exception = new HttpException(
+        { message: 'Forbidden', error: { errorCode: 'CUSTOM_CODE' } },
+        HttpStatus.FORBIDDEN,
+      );
+      (exception as { errorCode?: string }).errorCode = 'WEAK_PASSWORD';
+
+      filter.catch(exception, mockArgumentsHost);
+
+      assertResponse(HttpStatus.FORBIDDEN, {
+        title: 'Forbidden',
+        status: HttpStatus.FORBIDDEN,
+        type: 'forbidden',
+        errorCode: 'CUSTOM_CODE',
+      });
+    });
+
+    it('ignores a non-string errorCode', () => {
+      const exception = new BadRequestException('Password is too weak');
+      (exception as { errorCode?: unknown }).errorCode = 42;
+
+      filter.catch(exception, mockArgumentsHost);
+
+      const body = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+        .calls[0][1];
+      expect(body).not.toHaveProperty('errorCode');
+    });
+  });
+
   function assertResponse(
     expectedStatus: number,
     expectedJson: IProblemDetail,

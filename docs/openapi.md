@@ -4,7 +4,7 @@
 
 The library always emits `type`, `title`, and `status`. `detail`, `instance` and any extension members (RFC 9457 §3.2) are conditional. The schema below documents two optional extension members:
 
-- **`code`** — API-specific error code (vendor extension).
+- **`errorCode`** — Machine-readable API-specific error code (vendor extension, mirrors NestJS `HttpExceptionOptions.errorCode`).
 - **`errors`** — Array of granular error details with `{ detail, pointer, parameter, header, code }`. Accepted but not emitted by the library.
 
 None of these are emitted by the library out of the box.
@@ -47,9 +47,9 @@ None of these are emitted by the library out of the box.
       "format": "uri-reference",
       "maxLength": 1024
     },
-    "code": {
+    "errorCode": {
       "type": "string",
-      "description": "Optional API-specific error code (extension member, not part of RFC 9457).",
+      "description": "Optional machine-readable error code (extension member, not part of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`.",
       "maxLength": 50
     },
     "errors": {
@@ -141,12 +141,12 @@ components:
             problem type. It may or may not yield further information if
             dereferenced (RFC 9457 §3.1).
           example: '/dragons/99'
-        code:
+        errorCode:
           type: string
           maxLength: 50
           description: >
-            Optional API-specific error code (extension member, not part of
-            RFC 9457).
+            Optional machine-readable error code (extension member, not part
+            of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`.
         errors:
           type: array
           maxItems: 1000
