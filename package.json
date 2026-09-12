@@ -1,6 +1,6 @@
 {
   "name": "nest-problem-details-filter",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "RFC 9457 Problem Details for NestJS — standardized HTTP errors, typed problem exceptions, validation errors, Retry-After, and OpenAPI integration.",
   "license": "MIT",
   "main": "dist/index.js",

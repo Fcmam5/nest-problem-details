@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-09-12
+
 ### Added
 
 - NestJS 12 support (peer deps now include `^12.0.0`).
