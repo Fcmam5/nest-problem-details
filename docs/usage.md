@@ -312,7 +312,7 @@ Content-Type: application/problem+json; charset=utf-8
 
 #### Optional `type`
 
-`type` is the only optional field on `ProblemDetailsInput`. When omitted, the filter resolves it from its status-to-type map (or falls back to `about:blank`, per [RFC 9457 §4.2.1](https://datatracker.ietf.org/doc/html/rfc9457#section-4.2.1)).
+`type` is optional on `ProblemDetailsInput`. When omitted, the filter resolves it from its status-to-type map (or falls back to `about:blank`, per [RFC 9457 §4.2.1](https://datatracker.ietf.org/doc/html/rfc9457#section-4.2.1)).
 
 ```ts
 throw new ProblemDetailsException({
