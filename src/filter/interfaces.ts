@@ -59,12 +59,13 @@ export type SuppressDetail =
  * Shape of the payload returned by `HttpException.getResponse()` when not a
  * plain string. Mirrors NestJS's internal exception shape.
  *
- * `message` may be a `string[]` when Nest's default `ValidationPipe` is used.
+ * `message` may be a `string[]` when Nest's default `ValidationPipe` is used,
+ * or a `Record<string, string[]>` when `errorFormat: 'grouped'` (Nest v12).
  * `errors` carries structured validation errors when set by the caller:
  * either a `Record<string, string[]>` field-map or a RFC 9457 pointer array.
  */
 export interface IExceptionResponse {
-  message: string | string[];
+  message: string | string[] | Record<string, string[]>;
   error?: string | IErrorDetail['error'];
   errors?: unknown;
   statusCode: number;

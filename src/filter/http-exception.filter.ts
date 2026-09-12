@@ -22,7 +22,11 @@ import {
   SuppressDetailContext,
 } from './interfaces';
 import { formatRetryAfter } from '../exception/retry-after';
-import { asString, isErrorObject } from './type-guards';
+import {
+  asString,
+  isErrorObject,
+  isGroupedValidationErrors,
+} from './type-guards';
 import {
   resolveProblemTitle,
   resolveProblemType,
@@ -124,6 +128,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
         // Approach 1: Nest's default ValidationPipe emits a flat string[].
         // Per RFC 9457 §3.1.4 consumers SHOULD NOT parse `detail` for
         // information — put the array in `errors` instead.
+        title = undefined; // resolves to HTTP status reason phrase
+        errors = message;
+      } else if (isGroupedValidationErrors(message)) {
+        // Nest v12 `ValidationPipe` with `errorFormat: 'grouped'` emits a
+        // Record<string, string[]> (dotted path → constraint messages) instead
+        // of a flat string[]. Same treatment as the array form: keep the map
+        // under `errors` rather than dropping it. The shape matches what
+        // `mapClassValidatorErrors()` produces, so the wire format is
+        // identical to the documented field-map approach.
         title = undefined; // resolves to HTTP status reason phrase
         errors = message;
       } else if (typeof message === 'string') {
