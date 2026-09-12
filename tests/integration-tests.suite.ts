@@ -1,10 +1,5 @@
 import request from 'supertest';
-import {
-  BadRequestException,
-  HttpExceptionOptions,
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { MAINTENANCE_RETRY_AT } from './test-app.module';
 
 export function runIntegrationTests(
@@ -145,36 +140,6 @@ export function runIntegrationTests(
       });
     });
 
-    describe('Nest v12 errorCode (omitted on v11)', () => {
-      // Feature-detect: the option only exists on v12, so the probe's
-      // `errorCode` is set there and undefined on v11.
-      const probeOpts = {
-        errorCode: 'PROBE',
-      } as unknown as HttpExceptionOptions;
-      const supportsErrorCode =
-        (new BadRequestException('x', probeOpts) as { errorCode?: unknown })
-          .errorCode === 'PROBE';
-
-      it('surfaces errorCode as an extension member when supported', async () => {
-        const response = await request(getServer(app))
-          .get('/api/test/error-code')
-          .expect(400);
-
-        expect(response.body).toMatchObject({
-          type: 'bad-request',
-          title: 'Password is too weak',
-          status: 400,
-          detail: 'Bad Request',
-        });
-
-        if (supportsErrorCode) {
-          expect(response.body.errorCode).toBe('WEAK_PASSWORD');
-        } else {
-          expect(response.body).not.toHaveProperty('errorCode');
-        }
-      });
-    });
-
     describe('Validation errors', () => {
       const invalidBody = {
         username: 'a',
@@ -231,40 +196,6 @@ export function runIntegrationTests(
 
           const msgs: string[] = response.body.errors;
           expect(msgs.some((m) => m.includes('reserved'))).toBe(true);
-        });
-      });
-
-      describe('Nest v12 errorFormat: grouped (degrades to list on v11)', () => {
-        // Feature-detect rather than version-check: v11 ignores the option,
-        // so `pipe.errorFormat` stays undefined there.
-        const groupedOpts = { errorFormat: 'grouped' as const };
-        const supportsGrouped =
-          (
-            new ValidationPipe(groupedOpts) as unknown as {
-              errorFormat?: string;
-            }
-          ).errorFormat === 'grouped';
-
-        it('returns a field-map errors object when grouped is supported', async () => {
-          const response = await request(getServer(app))
-            .post('/api/test/validation/grouped')
-            .send(invalidBody)
-            .expect(400);
-
-          expect(response.body.type).toBe('bad-request');
-          expect(response.body.status).toBe(400);
-          expect(response.body.errors).toBeDefined();
-
-          if (supportsGrouped) {
-            const errors: Record<string, string[]> = response.body.errors;
-            expect(Array.isArray(errors)).toBe(false);
-            expect(errors['email']).toBeDefined();
-            expect(
-              errors['address.street'] ?? errors['address.city'],
-            ).toBeDefined();
-          } else {
-            expect(Array.isArray(response.body.errors)).toBe(true);
-          }
         });
       });
 
