@@ -524,6 +524,77 @@ describe('HttpExceptionFilter', () => {
       });
     });
 
+    describe('Nest v12 grouped errorFormat (Record<string, string[]> message)', () => {
+      it('puts grouped message map into errors and resolves title from status', () => {
+        filter.catch(
+          new BadRequestException({
+            message: {
+              email: ['email must be an email'],
+              'address.city': ['address.city should not be empty'],
+            },
+            error: 'Bad Request',
+            statusCode: status,
+          }),
+          mockArgumentsHost,
+        );
+
+        assertResponse(status, {
+          type: 'bad-request',
+          title: 'Bad Request',
+          status,
+          detail: 'Bad Request',
+          errors: {
+            email: ['email must be an email'],
+            'address.city': ['address.city should not be empty'],
+          },
+        } as unknown as IProblemDetail);
+      });
+
+      it('omits errors when grouped message map is empty', () => {
+        filter.catch(
+          new BadRequestException({
+            message: {},
+            error: 'Bad Request',
+            statusCode: status,
+          }),
+          mockArgumentsHost,
+        );
+
+        const call = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+          .calls[0][1];
+        expect(call).not.toHaveProperty('errors');
+      });
+
+      it('ignores an object message whose values are not arrays', () => {
+        filter.catch(
+          new HttpException(
+            { message: { stack: 'at Object.<anonymous>' }, statusCode: 500 },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          ),
+          mockArgumentsHost,
+        );
+
+        const call = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+          .calls[0][1];
+        expect(call).not.toHaveProperty('errors');
+      });
+
+      it('ignores an object message whose arrays hold non-strings', () => {
+        filter.catch(
+          new BadRequestException({
+            message: { age: [1, 2] },
+            error: 'Bad Request',
+            statusCode: status,
+          }),
+          mockArgumentsHost,
+        );
+
+        const call = (mockHttpAdapterHost.httpAdapter.reply as jest.Mock).mock
+          .calls[0][1];
+        expect(call).not.toHaveProperty('errors');
+      });
+    });
+
     describe('Approach 2 — BadRequestException with explicit errors field-map', () => {
       it('passes errors object through to response', () => {
         filter.catch(

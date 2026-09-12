@@ -67,35 +67,57 @@ export const PROBLEM_DETAILS_SCHEMA: SchemaObject = {
         'of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`.',
     },
     errors: {
-      type: 'array',
-      maxItems: 1000,
       description:
-        'Array of granular error details. Accepted as an ' +
-        'extension member but not emitted by this library.',
-      items: {
-        type: 'object',
-        required: ['detail'],
-        additionalProperties: true,
-        properties: {
-          detail: { type: 'string', maxLength: 4096 },
-          pointer: {
-            type: 'string',
-            maxLength: 1024,
-            description: 'JSON Pointer to a request body property.',
-          },
-          parameter: {
-            type: 'string',
-            maxLength: 1024,
-            description: 'Query or path parameter name.',
-          },
-          header: {
-            type: 'string',
-            maxLength: 1024,
-            description: 'Request header name.',
-          },
-          code: { type: 'string', maxLength: 50 },
+        'Granular validation error details (extension member). Shape ' +
+        'depends on how errors were produced: a flat array of messages ' +
+        '(default `ValidationPipe`), a field-map of messages keyed by ' +
+        'dotted path (`mapClassValidatorErrors()`, or Nest v12 ' +
+        "`ValidationPipe` with `errorFormat: 'grouped'`), or an array of " +
+        'RFC 9457 JSON Pointer objects (`mapToPointerErrors()`).',
+      oneOf: [
+        {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1000,
+          items: { type: 'string', maxLength: 4096 },
         },
-      },
+        {
+          type: 'object',
+          additionalProperties: {
+            type: 'array',
+            items: { type: 'string', maxLength: 4096 },
+          },
+        },
+        {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1000,
+          items: {
+            type: 'object',
+            required: ['detail'],
+            additionalProperties: true,
+            properties: {
+              detail: { type: 'string', maxLength: 4096 },
+              pointer: {
+                type: 'string',
+                maxLength: 1024,
+                description: 'JSON Pointer to a request body property.',
+              },
+              parameter: {
+                type: 'string',
+                maxLength: 1024,
+                description: 'Query or path parameter name.',
+              },
+              header: {
+                type: 'string',
+                maxLength: 1024,
+                description: 'Request header name.',
+              },
+              code: { type: 'string', maxLength: 50 },
+            },
+          },
+        },
+      ],
     },
   },
 };

@@ -28,3 +28,28 @@ export function isErrorObject(
 export function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
+
+/**
+ * Type guard for the `Record<string, string[]>` `message` emitted by Nest v12's
+ * `ValidationPipe` with `errorFormat: 'grouped'` (dotted field path → messages).
+ *
+ * The shape is checked, not assumed, so an arbitrary object `message` is not
+ * surfaced on the wire. `Object.keys` rather than `for...in`: a request-supplied
+ * `__proto__` path reassigns the map's prototype instead of adding a key.
+ */
+export function isGroupedValidationErrors(
+  value: unknown,
+): value is Record<string, string[]> {
+  if (!isErrorObject(value)) return false;
+
+  const keys = Object.keys(value);
+  if (keys.length === 0) return false;
+
+  return keys.every((key) => {
+    const messages = (value as Record<string, unknown>)[key];
+    return (
+      Array.isArray(messages) &&
+      messages.every((message) => typeof message === 'string')
+    );
+  });
+}

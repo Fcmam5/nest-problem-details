@@ -5,9 +5,9 @@
 The library always emits `type`, `title`, and `status`. `detail`, `instance` and any extension members (RFC 9457 §3.2) are conditional. The schema below documents two optional extension members:
 
 - **`errorCode`** — Machine-readable API-specific error code (vendor extension, mirrors NestJS `HttpExceptionOptions.errorCode`).
-- **`errors`** — Array of granular error details with `{ detail, pointer, parameter, header, code }`. Accepted but not emitted by the library.
+- **`errors`** — Granular validation error details. One of three shapes depending on how errors were produced: a flat array of messages (default `ValidationPipe`), a field-map keyed by dotted path (`mapClassValidatorErrors()`, or Nest v12 `ValidationPipe` with `errorFormat: 'grouped'`), or an array of RFC 9457 JSON Pointer objects `{ detail, pointer, parameter, header, code }` (`mapToPointerErrors()`). See [Validation error handling](./usage.md#validation-error-handling).
 
-None of these are emitted by the library out of the box.
+`errorCode` is never emitted unless the caller sets it; `errors` is emitted automatically for `ValidationPipe` rejections and passed through as-is for the other approaches.
 
 ## JSON Schema (Draft 2019-09)
 
@@ -53,10 +53,12 @@ None of these are emitted by the library out of the box.
       "maxLength": 50
     },
     "errors": {
-      "type": "array",
-      "description": "Array of granular error details. Accepted as an extension member but not emitted by this library.",
-      "maxItems": 1000,
-      "items": { "$ref": "#/$defs/ErrorDetail" }
+      "description": "Granular validation error details (extension member). Shape depends on how errors were produced: a flat array of messages, a field-map keyed by dotted path, or an array of RFC 9457 JSON Pointer objects.",
+      "oneOf": [
+        { "type": "array", "minItems": 1, "maxItems": 1000, "items": { "type": "string", "maxLength": 4096 } },
+        { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string", "maxLength": 4096 } } },
+        { "type": "array", "minItems": 1, "maxItems": 1000, "items": { "$ref": "#/$defs/ErrorDetail" } }
+      ]
     }
   },
   "required": ["type", "title", "status"],
@@ -66,11 +68,11 @@ None of these are emitted by the library out of the box.
       "type": "object",
       "description": "Granular detail for a single problem cause.",
       "properties": {
-        "detail":    { "type": "string", "maxLength": 4096 },
-        "pointer":   { "type": "string", "maxLength": 1024, "description": "JSON Pointer to a request body property." },
+        "detail": { "type": "string", "maxLength": 4096 },
+        "pointer": { "type": "string", "maxLength": 1024, "description": "JSON Pointer to a request body property." },
         "parameter": { "type": "string", "maxLength": 1024, "description": "Query or path parameter name." },
-        "header":    { "type": "string", "maxLength": 1024, "description": "Request header name." },
-        "code":      { "type": "string", "maxLength": 50 }
+        "header": { "type": "string", "maxLength": 1024, "description": "Request header name." },
+        "code": { "type": "string", "maxLength": 50 }
       },
       "required": ["detail"],
       "additionalProperties": true
@@ -148,13 +150,29 @@ components:
             Optional machine-readable error code (extension member, not part
             of RFC 9457). Mirrors NestJS `HttpExceptionOptions.errorCode`.
         errors:
-          type: array
-          maxItems: 1000
           description: >
-            Array of granular error details. Accepted as an
-            extension member but not emitted by this library.
-          items:
-            $ref: '#/components/schemas/ErrorDetail'
+            Granular validation error details (extension member). Shape
+            depends on how errors were produced: a flat array of messages,
+            a field-map keyed by dotted path, or an array of RFC 9457 JSON
+            Pointer objects.
+          oneOf:
+            - type: array
+              minItems: 1
+              maxItems: 1000
+              items:
+                type: string
+                maxLength: 4096
+            - type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+                  maxLength: 4096
+            - type: array
+              minItems: 1
+              maxItems: 1000
+              items:
+                $ref: '#/components/schemas/ErrorDetail'
       additionalProperties: true
 
     ErrorDetail:
@@ -215,7 +233,7 @@ See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_
   - **With a `baseUri`**: absolute URIs like `https://example.com/problems/not-found`.
   - **Without a `baseUri`, `strictRfcDefaults: false` (default)**: short slugs like `not-found` for mapped exceptions; plain `HttpException`s use a status-code slug (e.g. `internal-server-error`).
   - **`strictRfcDefaults: true`**: any exception without an explicit caller-supplied type emits `about:blank` per RFC 9457 §4.2.1, regardless of `baseUri` or the default status map. Exceptions with an explicit type (via the `error` object form) still resolve against `baseUri` when set.
-- **Validation errors**: the schema accepts the `errors` extension member, but the library does not emit it by default (`invalid-params` appeared only in an RFC 7807 example and was not standardised in RFC 9457).
+- **Validation errors**: the schema documents `errors` as the extension member used for validation failures. `invalid-params` is deliberately not used — it appeared only in an RFC 7807 example and was not standardised in RFC 9457. See [Validation error handling](./usage.md#validation-error-handling) for which approach emits which `errors` shape.
 - The `Content-Type` response header is `application/problem+json`. RFC 9457 §6.2 also registers `application/problem+xml`; this library emits **only JSON**.
 - `title` MAY be localized via the HTTP `Content-Language` response header (RFC 9457 §3.1). This library does not localize.
 - `maxLength` / `maxItems` constraints in this schema are pragmatic hardening limits and are **not** mandated by RFC 9457.
@@ -224,4 +242,3 @@ See [`docs/usage.md`](./usage.md) for the full decorator API and `BASE_PROBLEMS_
 
 - [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457) (obsoletes RFC 7807)
 - [Swagger blog: Problem Details (RFC 9457) API error handling](https://swagger.io/blog/problem-details-rfc9457-api-error-handling/)
-

@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   HttpException,
+  HttpExceptionOptions,
   Module,
   NotFoundException,
   Param,
@@ -44,6 +45,19 @@ const CreateUserDtoBodyExamples = ApiBody({
 
 // Fixed instant used by Retry-After Date integration test.
 export const MAINTENANCE_RETRY_AT = new Date('2026-04-30T06:00:00Z');
+
+// Options declared as variables (not object literals) so the v12-only keys
+// don't trip excess-property checks when CI runs the suite against v11 typings.
+const GROUPED_PIPE_OPTIONS = {
+  transform: true,
+  whitelist: true,
+  errorFormat: 'grouped' as const,
+};
+// `as unknown as` because v11's HttpExceptionOptions lacks `errorCode` and
+// weak-type detection rejects the object even via a variable or plain `as`.
+const WEAK_PASSWORD_OPTIONS = {
+  errorCode: 'WEAK_PASSWORD',
+} as unknown as HttpExceptionOptions;
 
 @Controller('api/test')
 export class TestController {
@@ -98,6 +112,16 @@ export class TestController {
   })
   badRequest(): void {
     throw new BadRequestException();
+  }
+
+  // Nest v12 `HttpExceptionOptions.errorCode`. On v11 the option is ignored,
+  // so the property never exists and the filter omits the extension member.
+  @Get('error-code')
+  errorCode(): void {
+    throw new BadRequestException(
+      'Password is too weak',
+      WEAK_PASSWORD_OPTIONS,
+    );
   }
 
   @Get('forbidden')
@@ -297,6 +321,15 @@ export class TestController {
   )
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   validationProblemDetailsJsonPointer(@Body() _dto: CreateUserDto): void {}
+
+  // Nest v12 `errorFormat: 'grouped'` — emits Record<string, string[]> in
+  // `message`. On v11 the unknown option falls into validatorOptions and is
+  // ignored by class-validator, so output is the flat list format.
+  @Post('validation/grouped')
+  @CreateUserDtoBodyExamples
+  @UsePipes(new ValidationPipe(GROUPED_PIPE_OPTIONS))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validationGrouped(@Body() _dto: CreateUserDto): void {}
 }
 
 @Module({

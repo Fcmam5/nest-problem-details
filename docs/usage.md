@@ -655,6 +655,25 @@ app.useGlobalFilters(new HttpExceptionFilter(app.get(HttpAdapterHost)));
 
 Messages are flat (no field grouping) because Nest's default pipe does not expose field keys in its output.
 
+Nest v12's `ValidationPipe` also supports `errorFormat: 'grouped'`, which emits `message` as a `Record<string, string[]>` (dot-path → messages) instead of `string[]`. The filter surfaces that map under `errors` in the same way — still zero configuration:
+
+```ts
+app.useGlobalPipes(new ValidationPipe({ errorFormat: 'grouped' }));
+```
+
+```json
+{
+  "type": "bad-request",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Bad Request",
+  "errors": {
+    "email": ["email must be an email"],
+    "address.city": ["address.city should not be empty"]
+  }
+}
+```
+
 ---
 
 ### Approach 2 — `BadRequestException` with `exceptionFactory`

@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Jest: `@swc/jest` + `.swcrc` to load NestJS 12's ESM packages.
 - Update descriptions in package.json and README.md.
 
+### Fixed
+
+- Grouped `ValidationPipe` output (`errorFormat: 'grouped'`, Nest v12) is no longer silently dropped — the dot-path field map is surfaced under `errors`, matching the flat-array behavior (#59).
+- OpenAPI schema: `errors` was declared only as the RFC 9457 pointer-array shape emitted by `mapToPointerErrors()`, missing the other supported forms. Now `oneOf` flat `string[]`, `Record<string, string[]>` field-map, or RFC 9457 pointer array — matching actual output.
+
 ## [1.9.0] - 2026-08-16
 
 ### Added
@@ -220,7 +225,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - :sparkles: support Fastify
-
 
 ## [0.0.1] - 2021-06-06
 
