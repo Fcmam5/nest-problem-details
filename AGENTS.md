@@ -16,7 +16,7 @@ pnpm test:cov    # jest --coverage — global threshold is 99%
 pnpm lint        # eslint
 pnpm format      # prettier --write
 pnpm build       # nest build → dist/
-pnpm start:mock  # runnable demo app (tests/mock-main.ts) on :3333
+pnpm start:mock  # runnable demo app (tests/mock-main.ts) on :3000
 ```
 
 Supply-chain guard: `pnpm-workspace.yaml` (`minimumReleaseAge: 1440`) and `.npmrc` (`min-release-age=0.5`) refuse dependency versions younger than 12–24h. Do not edit or bypass these files; if a fresh dep version is blocked, wait or flag it to the maintainer.

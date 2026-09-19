@@ -364,7 +364,7 @@ See [`docs/usage.md`](./docs/usage.md) for the full decorator API (custom schema
 ### Example response
 
 ```bash
-# curl -i http://localhost:3333/api/dragons/99?title=true&details=true
+# curl -i http://localhost:3000/api/dragons/99?title=true&details=true
 
 HTTP/1.1 404 Not Found
 Content-Type: application/problem+json; charset=utf-8
@@ -529,7 +529,7 @@ See [`docs/usage.md`](./docs/usage.md#validation-error-handling) for the full wa
 |---|---|
 | `@nestjs/common` / `@nestjs/core` | `^9 \|\| ^10 \|\| ^11 \|\| ^12` |
 | HTTP adapters | Any adapter going through `HttpAdapterHost` — tested on Express and Fastify; other platforms (e.g. community adapters) should work if they honor Nest's adapter contract (`reply` / `setHeader` / `status`) |
-| `@nestjs/swagger` (optional) | `^9 \|\| ^10 \|\| ^11 \|\| ^12` — only needed for the `/swagger` subpath |
+| `@nestjs/swagger` (optional) | Major must match your NestJS major (`^9`–`^12`) — only needed for the `/swagger` subpath |
 | `class-validator` (optional) | `^0.14 \|\| ^0.15` — only needed for the `/class-validator-mappers` subpath |
 | Node.js | Any version supported by your NestJS release (CI runs on Node 24) |
 

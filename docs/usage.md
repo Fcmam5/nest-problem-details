@@ -516,7 +516,7 @@ If you override the built-in status-to-type map via `HTTP_ERRORS_MAP_KEY`, pass 
 ### Default Nest `NotFoundException` handler
 
 ```bash
-curl -i http://localhost:3333/some-wrong-path
+curl -i http://localhost:3000/some-wrong-path
 ```
 
 Response:
