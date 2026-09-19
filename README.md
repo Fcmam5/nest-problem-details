@@ -55,6 +55,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
 - [NestHttpProblemDetails (RFC 9457 / RFC 7807)](#nesthttpproblemdetails-rfc-9457--rfc-7807)
   - [Quick start](#quick-start)
   - [Features](#features)
+  - [When should I use this?](#when-should-i-use-this)
   - [Usage](#usage)
     - [As a global filter](#as-a-global-filter)
       - [Suppressing `detail` in production](#suppressing-detail-in-production)
@@ -70,6 +71,7 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
       - [Approach 1 — Zero config](#approach-1--zero-config)
       - [Approach 2 — Field-map via `BadRequestException`](#approach-2--field-map-via-badrequestexception)
       - [Approach 3 — `ProblemDetailsException` (field-map or RFC pointer array)](#approach-3--problemdetailsexception-field-map-or-rfc-pointer-array)
+  - [Compatibility](#compatibility)
   - [Development](#development)
     - [Tests](#tests)
     - [Mock app](#mock-app)
@@ -79,6 +81,23 @@ See [Usage](#usage) for module setup, `Retry-After`, validation errors, and Swag
   - [Contributing](#contributing)
   - [Security](#security)
   - [License](#license)
+
+## When should I use this?
+
+**Use it when** you have a NestJS HTTP API and want:
+
+- Standardized `application/problem+json` error responses (RFC 9457 / RFC 7807)
+- Consistent, machine-readable errors across endpoints
+- Typed application problems via `ProblemDetailsException` with extension members
+- Validation errors surfaced as field maps or RFC 9457 JSON Pointers
+- OpenAPI docs that match the runtime wire format
+- `Retry-After` on retriable responses (429, 503, ...)
+- To migrate off Nest's default `{ statusCode, message }` shape without rewriting handlers
+
+**Probably don't use it when:**
+
+- Your API is GraphQL-only or uses non-HTTP transports (gRPC, WebSockets, queues) — Problem Details is an HTTP contract
+- You already ship an incompatible error contract you can't change
 
 ## Usage
 
@@ -503,6 +522,18 @@ Pointer format output:
 ```
 
 See [`docs/usage.md`](./docs/usage.md#validation-error-handling) for the full walkthrough including nested objects, custom validators, and all options.
+
+## Compatibility
+
+| Component | Supported |
+|---|---|
+| `@nestjs/common` / `@nestjs/core` | `^9 \|\| ^10 \|\| ^11 \|\| ^12` |
+| HTTP adapters | Any adapter going through `HttpAdapterHost` — tested on Express and Fastify; other platforms (e.g. community adapters) should work if they honor Nest's adapter contract (`reply` / `setHeader` / `status`) |
+| `@nestjs/swagger` (optional) | `^9 \|\| ^10 \|\| ^11 \|\| ^12` — only needed for the `/swagger` subpath |
+| `class-validator` (optional) | `^0.14 \|\| ^0.15` — only needed for the `/class-validator-mappers` subpath |
+| Node.js | Any version supported by your NestJS release (CI runs on Node 24) |
+
+CI runs the full suite on NestJS 11 and 12 against both Express and Fastify; other adapters aren't covered by the test matrix but use the same code path. Optional peers stay optional — the core filter has zero runtime dependencies.
 
 ## Development
 
